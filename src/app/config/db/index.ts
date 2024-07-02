@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 export async function connect() {
   try {
     await mongoose.connect(
-      "mongodb+srv://duocnnbluepink:nxsMiwVIwpryFxHo@typescript.ejti578.mongodb.net/quizz"
+      "mongodb+srv://devbluepink:g3etGqWP4YJO2CXn@forum.2nzb0qa.mongodb.net/forum"
     );
     console.log("Truy cập DB thành công!");
   } catch (error) {

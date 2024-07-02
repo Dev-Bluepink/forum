@@ -1,0 +1,11 @@
+index.ejs <% if (!user) { %>
+<div style="width: 500px; height: 180px">
+  <h2 style="font-size: 40px">Welcome! Please log in.</h2>
+  <a href="/auth/google">Login with Google</a>
+</div>
+<% } else { %>
+<h2>Hello, <%= user.fullname %>.</h2>
+<p>ID: <%= user.id %></p>
+<p>Name :<%= user.fullname %></p>
+<a href="/auth/logout">Logout</a>
+<% } %>
