@@ -17,11 +17,16 @@ const ThreadsSchema = new Schema<IThread>(
       required: true,
     },
     title: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["Accept", "Pending", "Reject"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const ThreadsModle = model<IThread>("Threads", ThreadsSchema);
-export default ThreadsModle;
+const ThreadsModel = model<IThread>("Threads", ThreadsSchema);
+export default ThreadsModel;

@@ -10,7 +10,7 @@ class CategoriesService {
       }
       const category = await CategoriesModel.create({ provinceId, name });
       if (!category) {
-        throw new CustomError(400, "Lỗi khi tạo mới danh mục");
+        throw new CustomError(500, "Lỗi khi tạo mới danh mục");
       }
       return category;
     } catch (error) {
@@ -25,7 +25,7 @@ class CategoriesService {
     try {
       const checkDelete = await CategoriesModel.findById(id);
       if (!checkDelete) {
-        throw new CustomError(400, "Không tìm thấy danh mục cần xóa");
+        throw new CustomError(500, "Không tìm thấy danh mục cần xóa");
       }
       const update = { isDeleted: !checkDelete.isDeleted };
       const deleteCategory = await CategoriesModel.findByIdAndUpdate(
@@ -41,6 +41,17 @@ class CategoriesService {
         throw new CustomError(500, "Lỗi máy chủ: " + error);
       }
     }
+  }
+  async getAllCategories(page: number, limit: number) {
+    try {
+      const categories = await CategoriesModel.find()
+        .skip((page - 1) * limit)
+        .limit(limit);
+      if (!categories) {
+        throw new CustomError(204, "Không tìm thấy danh mục nào!!");
+      }
+      return categories;
+    } catch (error) {}
   }
 }
 
