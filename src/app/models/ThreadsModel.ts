@@ -5,6 +5,7 @@ export interface IThread {
   userId: mongoose.Types.ObjectId;
   categoryId: mongoose.Types.ObjectId;
   status: string;
+  isDelete: boolean;
   title: string;
 }
 
@@ -21,6 +22,10 @@ const ThreadsSchema = new Schema<IThread>(
       type: String,
       enum: ["Accept", "Pending", "Reject"],
       default: "Pending",
+    },
+    isDelete: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -60,4 +60,39 @@ class ThreadsService {
       }
     }
   }
+
+  async getAllThreads(page: number, limit: number, categoryId?: string) {
+    try {
+      const filter = categoryId ? { categoryId } : {};
+      const threads = await ThreadsModel.find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit);
+      if (!threads) {
+        throw new CustomError(400, "Lỗi khi tìm kiếm tất cả chủ đề");
+      }
+      return threads;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
+  async countThreads(categoryId?: string) {
+    try {
+      const filter = categoryId ? { categoryId } : {};
+      const count = await ThreadsModel.countDocuments(filter);
+      if (!count) {
+        throw new CustomError(400, "Lỗi khi đếm tổng số chủ đề");
+      }
+      return count;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
 }

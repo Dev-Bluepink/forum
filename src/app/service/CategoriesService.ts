@@ -42,9 +42,10 @@ class CategoriesService {
       }
     }
   }
-  async getAllCategories(page: number, limit: number) {
+  async getAllCategories(page: number, limit: number, provinceId?: string) {
     try {
-      const categories = await CategoriesModel.find()
+      const filter = provinceId ? { provinceId } : {};
+      const categories = await CategoriesModel.find(filter)
         .skip((page - 1) * limit)
         .limit(limit);
       if (!categories) {
@@ -52,6 +53,23 @@ class CategoriesService {
       }
       return categories;
     } catch (error) {}
+  }
+
+  async countCategories(provinceId?: string) {
+    try {
+      const filter = provinceId ? { provinceId } : {};
+      const count = await CategoriesModel.countDocuments(filter);
+      if (!count) {
+        throw new CustomError(204, "Lỗi khi đếm tổng số danh mục");
+      }
+      return count;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
   }
 }
 
