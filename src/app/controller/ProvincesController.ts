@@ -7,13 +7,11 @@ class ProvincesController {
   async addProvince(req: Request, res: Response) {
     try {
       const { province } = req.body;
-      const name = province;
-      console.log(name);
 
       if (!province || Object.keys(province).length === 0) {
         throw new CustomError(400, "Vui lòng nhập tên tỉnh muốn thêm");
       }
-      const newProvince = await ProvincesService.addProvince(name);
+      const newProvince = await ProvincesService.addProvince(province);
       res.status(201).json(newProvince);
     } catch (error) {
       if (error instanceof CustomError) {
