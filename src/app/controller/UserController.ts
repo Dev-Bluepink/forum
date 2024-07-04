@@ -41,15 +41,15 @@ class UserController {
       return res.status(400).send("Username, email và password là bắt buộc");
     }
 
-    const { email, password } = req.body;
+    const { email, password, firstName, lastName, birthday } = req.body;
     const username = req.body.username;
-
+    const fullname = firstName + " " + lastName;
     if (!username || !email || !password) {
       return res.status(400).send("Username, email và password là bắt buộc");
     }
 
     try {
-      await UserService.addUser(username, email, password);
+      await UserService.addUser(username, email, fullname, birthday, password);
       res.status(201).send("Người dùng đã được đăng ký");
     } catch (error: any) {
       if (error instanceof CustomError) {

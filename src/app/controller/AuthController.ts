@@ -40,16 +40,17 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).send("Thiếu thông tin đăng ký");
   }
 
-  const { email, password } = req.body;
+  const { email, password, firstName, lastName, birthday } = req.body;
+  const fullname = firstName + " " + lastName;
   const username = req.body.username;
-  console.log(username, email, password);
 
   if (!username || !email || !password) {
     return res.status(400).send("Thiếu thông tin đăng ký");
   }
 
   try {
-    await UserService.addUser(username, email, password);
+    await UserService.addUser(username, email, fullname, birthday, password);
+
     res.status(201).send("Người dùng đã được đăng ký");
   } catch (error: any) {
     if (error.status && error.message) {

@@ -7,9 +7,10 @@ class UserService {
   async addUser(
     username: string,
     email: string,
+    fullname: string,
+    birthday: string,
     password: string,
-    googleId?: string,
-    fullname?: string
+    googleId?: string
   ) {
     // Kiểm tra xem username và email đã tồn tại chưa
     const existingUser = await UserModel.findOne({
@@ -31,6 +32,7 @@ class UserService {
       const newUser = new UserModel({
         username,
         email,
+        birthday,
         password: hashedPassword,
         fullname,
         googleId,
@@ -68,8 +70,7 @@ class UserService {
         return updatedUser;
       }
     } else {
-      const errorMessage = "Email không tồn tại";
-      throw new CustomError(204, errorMessage); // 204 Not Found
+      return null;
     }
   }
   async findUserById(idUser: string) {

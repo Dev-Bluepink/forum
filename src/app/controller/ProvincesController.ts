@@ -26,7 +26,7 @@ class ProvincesController {
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
       const PAGE_SIZE = req.query.PAGE_SIZE
         ? parseInt(req.query.PAGE_SIZE as string)
-        : 10;
+        : 64;
       const province = await ProvincesService.getAllProvinces(page, PAGE_SIZE);
       const count = await ProvincesService.countProvince();
       const totalPage = Math.ceil(count / PAGE_SIZE);

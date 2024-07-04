@@ -2,7 +2,7 @@ import CategoriesModel from "../models/CategoriesModel";
 import CustomError from "../utils/customError";
 
 class CategoriesService {
-  async addCategory(provinceId: string, name: string) {
+  async addCategory(provinceId: string, name: string, image: string) {
     try {
       const checkCategory = await CategoriesModel.findOne({ provinceId, name });
       if (checkCategory) {
@@ -42,17 +42,53 @@ class CategoriesService {
       }
     }
   }
-  async getAllCategories(page: number, limit: number, provinceId?: string) {
+  async getAllCategories(page: number, PAGE_SIZE: number, provinceId?: string) {
     try {
       const filter = provinceId ? { provinceId } : {};
-      const categories = await CategoriesModel.find(filter)
-        .skip((page - 1) * limit)
-        .limit(limit);
+      // const categories = await CategoriesModel.find(filter)
+      //   .skip((page - 1) * limit)
+      //   .limit(limit);
+      const categories = await CategoriesModel.aggregate([
+        {
+          $match: { filter },
+        },
+        {
+          $skip: (page - 1) * PAGE_SIZE,
+        },
+        {
+          $limit: PAGE_SIZE,
+        },
+        {
+          $lookup: {
+            from: "Threads",
+            localField: "_id",
+            foreignField: "threadId",
+            as: "threads",
+            pipeline: [{ $match: { isDelete: false } }],
+          },
+        },
+        { $addFields: { numThreads: { $size: "$threads" } } },
+        { $sort: { updatedAt: -1 } },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            image: 1,
+            numThreads: 1,
+          },
+        },
+      ]);
       if (!categories) {
         throw new CustomError(204, "Không tìm thấy danh mục nào!!");
       }
       return categories;
-    } catch (error) {}
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
   }
 
   async countCategories(provinceId?: string) {

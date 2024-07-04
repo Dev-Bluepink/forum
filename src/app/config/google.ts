@@ -7,31 +7,32 @@ import "dotenv/config";
 const isDistFolderExists = fs.existsSync(
   path.resolve(__dirname, "../../../dist")
 );
-
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.CLIENT_ID || "",
-      clientSecret: process.env.CLIENT_SECRET || "",
+      // clientID: process.env.CLIENT_ID || "",
+      // clientSecret: process.env.CLIENT_SECRET || "",
+      clientID:
+        "403908095428-ujbnjjfdtiofpmvtj6jqpomq6496qkbh.apps.googleusercontent.com",
+      clientSecret: "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",
       callbackURL: isDistFolderExists
-        ? "https://api-wls-demo-v1-1.onrender.com/auth/google/callback"
+        ? "https://forum-hngc.onrender.com/auth/google/callback"
         : "http://localhost:3000/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log(process.env.CLIENT_ID);
-        console.log(process.env.CLIENT_SECRET);
-        const { id, emails, displayName } = profile;
+        const { id, emails, displayName, photos } = profile;
+
         const email = emails ? emails[0].value : "";
         const username = displayName;
-
+        const avatar = photos ? photos[0].value : "";
         if (!email || !id) {
           return done(new Error("Email hoặc Google ID không hợp lệ"), false);
         }
 
         let user = await UserService.findUserByGoogleId(email, id);
         if (!user) {
-          user = await UserService.addUser(email, email, "", id, username);
+          user = await UserService.addUser(email, email, username, "", "", id);
         }
 
         return done(null, user);
