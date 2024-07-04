@@ -8,7 +8,11 @@ class CategoriesService {
       if (checkCategory) {
         throw new CustomError(400, "Danh mục này đã tồn tại trong khu vực");
       }
-      const category = await CategoriesModel.create({ provinceId, name });
+      const category = await CategoriesModel.create({
+        provinceId,
+        name,
+        image,
+      });
       if (!category) {
         throw new CustomError(500, "Lỗi khi tạo mới danh mục");
       }
@@ -21,16 +25,15 @@ class CategoriesService {
       }
     }
   }
-  async deleteCategory(id: string) {
+  async softDeleteCategory(id: string) {
     try {
       const checkDelete = await CategoriesModel.findById(id);
       if (!checkDelete) {
         throw new CustomError(500, "Không tìm thấy danh mục cần xóa");
       }
-      const update = { isDeleted: !checkDelete.isDeleted };
       const deleteCategory = await CategoriesModel.findByIdAndUpdate(
         id,
-        update,
+        { isDelete: true },
         { new: true }
       );
       return deleteCategory;
