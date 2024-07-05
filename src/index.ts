@@ -23,6 +23,7 @@ app.use(
     secret: "your_secret_key",
     resave: false,
     saveUninitialized: true,
+    cookie: { secure: false }, // Set to true if you use HTTPS
   })
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

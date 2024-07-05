@@ -1,7 +1,13 @@
 import * as express from "express";
 const router = express.Router();
 import passport from "../config/google";
-import { login, register, loginGG } from "../controller/AuthController";
+import {
+  login,
+  register,
+  loginGG,
+  resetPassword,
+  forgotPassword,
+} from "../controller/AuthController";
 
 /**
  * @swagger
@@ -112,6 +118,74 @@ router.get("/logout", (req, res, next) => {
     res.redirect("/"); // Chuyển hướng đến trang đăng nhập sau khi đăng xuất
   });
 });
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Quên mật khẩu
+ *     description: Gửi email để đặt lại mật khẩu.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email của người dùng
+ *                 example: "example@gmail.com"
+ *     responses:
+ *       200:
+ *         description: Email chứa mã OTP đã được gửi.
+ *       400:
+ *         description: Thiếu email.
+ *       404:
+ *         description: Email không tồn tại.
+ *       500:
+ *         description: Lỗi server.
+ */
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Đặt lại mật khẩu
+ *     description: Đặt lại mật khẩu bằng mã OTP.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email của người dùng
+ *                 example: "example@gmail.com"
+ *               otp:
+ *                 type: string
+ *                 description: Mã OTP
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 description: Mật khẩu mới
+ *                 example: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Mật khẩu đã được đặt lại thành công.
+ *       400:
+ *         description: Thiếu thông tin cần thiết hoặc mã OTP không hợp lệ.
+ *       404:
+ *         description: Người dùng không tồn tại.
+ *       500:
+ *         description: Lỗi server.
+ */
+router.post("/reset-password", resetPassword);
 // Route để bắt đầu xác thực với Facebook
 router.get(
   "/facebook",

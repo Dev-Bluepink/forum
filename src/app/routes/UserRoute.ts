@@ -159,13 +159,30 @@ router.get("/get-all-user", checkLogin, userController.getAllUsers);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
  *             properties:
  *               username:
  *                 type: string
+ *                 example: "user123"
  *               email:
  *                 type: string
+ *                 example: "user@example.com"
  *               password:
  *                 type: string
+ *                 example: "password123"
+ *               firstName:
+ *                 type: string
+ *                 example: "John"
+ *               lastName:
+ *                 type: string
+ *                 example: "Doe"
+ *               birthday:
+ *                 type: string
+ *                 format: date
+ *                 example: "1990-01-01"
  *     responses:
  *       201:
  *         description: Người dùng đã được đăng ký
@@ -173,6 +190,8 @@ router.get("/get-all-user", checkLogin, userController.getAllUsers);
  *         description: Thiếu thông tin đăng ký
  *       409:
  *         description: Username hoặc email đã tồn tại
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
  */
 router.post("/register", userController.register);
 

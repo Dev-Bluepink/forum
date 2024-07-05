@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import UserService from "../service/UserService";
 import { tokenSign } from "../utils/token";
 import { IUser } from "../models/UsersModel";
+import { generateOTP, storeOTP, verifyOTP } from "../utils/otpService";
+import { sendMailToResetPassword } from "../utils/emailService";
+import { hashPassword } from "../utils/hash";
+import CustomError from "../utils/customError";
 
 export const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
@@ -9,7 +13,6 @@ export const login = async (req: Request, res: Response) => {
   if (!username || !password) {
     return res.status(400).send("Thiếu thông tin đăng nhập");
   }
-
   try {
     const isValidUser = await UserService.validateUser(username, password);
     if (!isValidUser) {
@@ -25,12 +28,13 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("tokenLogin", token, {
       expires: new Date(Date.now() + 18000000000),
     });
+
     res.status(200).send({ message: "Đăng nhập thành công", user, token });
   } catch (error: any) {
-    if (error.status && error.message) {
+    if (error instanceof CustomError) {
       res.status(error.status).json({ message: error.message });
     } else {
-      res.status(500).json({ message: "Internal Server Error" }); // 500 Internal Server Error
+      res.status(500).json({ message: "Lỗi server" });
     }
   }
 };
@@ -53,10 +57,10 @@ export const register = async (req: Request, res: Response) => {
 
     res.status(201).send("Người dùng đã được đăng ký");
   } catch (error: any) {
-    if (error.status && error.message) {
+    if (error instanceof CustomError) {
       res.status(error.status).json({ message: error.message });
     } else {
-      res.status(500).json({ message: "Internal Server Error" }); // 500 Internal Server Error
+      res.status(500).json({ message: "Lỗi server" });
     }
   }
 };
@@ -75,4 +79,64 @@ export const loginGG = (req: Request, res: Response) => {
     expires: new Date(Date.now() + 18000000000),
   });
   res.status(200).send({ message: "Đăng nhập thành công", user, token });
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: "Thiếu email" });
+  }
+
+  const info: {} = { email };
+
+  try {
+    const user = await UserService.findOneUser(info);
+    if (!user) {
+      return res.status(404).json({ message: "Email không tồn tại" });
+    }
+
+    const otp = generateOTP();
+    await sendMailToResetPassword(email, otp);
+    storeOTP(req, email, otp);
+
+    res.status(200).json({ message: "Email chứa mã OTP đã được gửi" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ message: "Thiếu thông tin cần thiết" });
+  }
+
+  try {
+    // Kiểm tra OTP
+    if (!verifyOTP(req, email, otp)) {
+      return res.status(400).json({ message: "Mã OTP không hợp lệ" });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await hashPassword(newPassword);
+
+    const info: {} = { email };
+    const update: {} = { password: hashedPassword };
+    // Cập nhật mật khẩu
+    const user = await UserService.findOneAndUpdateUser(info, update);
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    res.status(200).json({ message: "Mật khẩu đã được đặt lại thành công" });
+  } catch (error) {
+    console.error(error);
+    if (error instanceof CustomError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Lỗi server" });
+    }
+  }
 };

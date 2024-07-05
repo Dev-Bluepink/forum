@@ -83,22 +83,19 @@ class UserService {
   async findUserByUsername(username: string) {
     //Kiểm tra xem username có hợp lệ không
     if (!username) {
-      const errorMessage = "Username không hợp lệ";
-      throw new CustomError(400, errorMessage); // 400 Bad Request
+      throw new CustomError(400, "Username không hợp lệ"); // 400 Bad Request
     }
     return UserModel.findOne({ username });
   }
   async validateUser(username: string, password: string) {
     //Kiểm tra xem username và password có hợp lệ không
-    const user = await this.findUserByUsername(username);
+    const user = await UserModel.findOne({ username });
     if (!user) {
-      const errorMessage = "User không tồn tại";
-      throw new CustomError(204, errorMessage); // 204 Not Found
+      throw new CustomError(204, "User không tồn tại"); // 204 Not Found
     }
     const isPasswordValid = comparePassword(password, user.password);
     if (!isPasswordValid) {
-      const errorMessage = "Password không đúng";
-      throw new CustomError(401, errorMessage); // 401 Unauthorized
+      throw new CustomError(201, "Password không đúng"); // 401 Unauthorized
     }
     return true;
   }
@@ -189,8 +186,40 @@ class UserService {
         throw new CustomError(204, errorMessage); // 204 Not Found
       }
       return updatedUser;
-    } catch (error: any) {
-      if (error.status && error.message) {
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ nội bộ: " + error); // 500 Internal Server Error
+      }
+    }
+  }
+  async findOneUser(info: {}) {
+    try {
+      const user = await UserModel.findOne(info);
+      if (!user) {
+        throw new CustomError(400, "Lỗi khi tìm kiếm User");
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ nội bộ: " + error); // 500 Internal Server Error
+      }
+    }
+  }
+  async findOneAndUpdateUser(info: {}, update: {}) {
+    try {
+      const user = await UserModel.findOneAndUpdate(info, update, {
+        new: true,
+      });
+      if (!user) {
+        throw new CustomError(400, "Lỗi khi cập nhật thông tin User");
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);
       } else {
         throw new CustomError(500, "Lỗi máy chủ nội bộ: " + error); // 500 Internal Server Error
