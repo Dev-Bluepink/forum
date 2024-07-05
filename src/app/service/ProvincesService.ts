@@ -144,6 +144,21 @@ class ProvincesService {
       }
     }
   }
+  async findProvinceById(id: string) {
+    try {
+      const province = await ProvincesModel.findById(id);
+      if (!province) {
+        throw new CustomError(204, "Lỗi không tìm thấy tỉnh thành");
+      }
+      return province;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
 }
 
 export default new ProvincesService();

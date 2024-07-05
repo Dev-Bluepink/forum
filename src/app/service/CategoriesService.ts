@@ -2,7 +2,12 @@ import CategoriesModel from "../models/CategoriesModel";
 import CustomError from "../utils/customError";
 
 class CategoriesService {
-  async addCategory(provinceId: string, name: string, image: string) {
+  async addCategory(
+    provinceId: string,
+    name: string,
+    image: string,
+    path: string
+  ) {
     try {
       const checkCategory = await CategoriesModel.findOne({ provinceId, name });
       if (checkCategory) {
@@ -12,6 +17,7 @@ class CategoriesService {
         provinceId,
         name,
         image,
+        path,
       });
       if (!category) {
         throw new CustomError(500, "Lỗi khi tạo mới danh mục");
@@ -102,6 +108,21 @@ class CategoriesService {
         throw new CustomError(204, "Lỗi khi đếm tổng số danh mục");
       }
       return count;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
+  async findCategoryById(id: string) {
+    try {
+      const categogy = await CategoriesModel.findById(id);
+      if (!categogy) {
+        throw new CustomError(204, "Lỗi không tìm thấy danh mục bằng ID ");
+      }
+      return categogy;
     } catch (error) {
       if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);

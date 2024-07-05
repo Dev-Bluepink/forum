@@ -6,6 +6,7 @@ export interface ICatogeries {
   name: string;
   image: string;
   isDelete: boolean;
+  path: string;
 }
 
 const CategoriesSchema: Schema = new Schema<ICatogeries>(
@@ -13,6 +14,7 @@ const CategoriesSchema: Schema = new Schema<ICatogeries>(
     provinceId: { type: Schema.Types.ObjectId, required: true },
     name: { type: String, reiquired: true },
     isDelete: { type: Boolean, required: true, default: false },
+    path: { type: String, required: true },
     image: { type: String, required: true },
   },
   {

@@ -2,13 +2,23 @@ import ThreadsModel from "../models/ThreadsModel";
 import CustomError from "../utils/customError";
 
 class ThreadsService {
-  async addThread(userId: string, categoryId: string, title: string) {
+  async addThread(
+    userId: string,
+    categoryId: string,
+    title: string,
+    path: string
+  ) {
     try {
       const checkThread = await ThreadsModel.findOne({ categoryId, title });
       if (checkThread) {
         throw new CustomError(400, "Chủ đề này đã tồn tại");
       }
-      const thread = await ThreadsModel.create({ userId, categoryId, title });
+      const thread = await ThreadsModel.create({
+        userId,
+        categoryId,
+        title,
+        path,
+      });
       if (!thread) {
         throw new CustomError(500, "Lỗi khi tạo mới chủ đề");
       }
@@ -96,3 +106,5 @@ class ThreadsService {
     }
   }
 }
+
+export default new ThreadsService();
