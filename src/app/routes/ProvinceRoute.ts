@@ -83,32 +83,27 @@ router.get("/get-all-province", ProvincesController.getAllProvinces);
 router.post("/add-province", ProvincesController.addProvince);
 /**
  * @swagger
- * /province/change-status-province:
- *   post:
+ * /province/change-status-province/{id}:
+ *   put:
  *     summary: Thay đổi trạng thái của tỉnh
  *     tags: [Province]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               provinceId:
- *                 type: string
- *                 example: "60b8d295f1b2c72b6c8b4567"
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của tỉnh thành
  *     responses:
  *       200:
  *         description: Trạng thái của tỉnh đã được thay đổi thành công
  *       400:
  *         description: Vui lòng truyền Id của tỉnh thành
- *       204:
- *         description: lỗi khi tìm kiếm tỉnh thành để thay đổi trạng thái
  *       500:
  *         description: Lỗi máy chủ
  */
-router.post(
-  "/change-status-province",
+router.put(
+  "/change-status-province/:id",
   ProvincesController.changeStatusProvince
 );
 

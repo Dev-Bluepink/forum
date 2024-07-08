@@ -22,6 +22,7 @@ class ThreadsService {
       if (!thread) {
         throw new CustomError(500, "Lỗi khi tạo mới chủ đề");
       }
+      return thread;
     } catch (error) {
       if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);
@@ -91,7 +92,7 @@ class ThreadsService {
   }
   async countThreads(categoryId?: string) {
     try {
-      const filter = categoryId ? { categoryId } : {};
+      const filter = categoryId ? { categoryId, isDelete: false } : {};
       const count = await ThreadsModel.countDocuments(filter);
       if (!count) {
         throw new CustomError(400, "Lỗi khi đếm tổng số chủ đề");

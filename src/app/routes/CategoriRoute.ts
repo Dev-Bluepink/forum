@@ -5,7 +5,7 @@ const router = Router();
 
 /**
  * @swagger
- * /add-category:
+ * /category/add-category:
  *   post:
  *     summary: Thêm danh mục mới
  *     tags: [Category]
@@ -35,19 +35,17 @@ router.post("/add-category", uploadImage, CategoriesController.addCategory);
 
 /**
  * @swagger
- * /delete-category:
- *   post:
+ * /category/delete-category/{id}:
+ *   put:
  *     summary: Xóa mềm danh mục
  *     tags: [Category]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               categoryId:
- *                 type: string
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của danh mục
  *     responses:
  *       200:
  *         description: Đã xóa danh mục thành công
@@ -58,11 +56,10 @@ router.post("/add-category", uploadImage, CategoriesController.addCategory);
  *       500:
  *         description: Lỗi máy chủ
  */
-router.post("/delete-category", CategoriesController.softDeleteCategory);
-
+router.put("/delete-category/:id", CategoriesController.softDeleteCategory);
 /**
  * @swagger
- * /get-all-category:
+ * /category/get-all-category/{provinceId}:
  *   get:
  *     summary: Lấy danh sách tất cả danh mục
  *     tags: [Category]
@@ -91,6 +88,9 @@ router.post("/delete-category", CategoriesController.softDeleteCategory);
  *       500:
  *         description: Lỗi máy chủ
  */
-router.get("/get-all-category", CategoriesController.getAllCategories);
+router.get(
+  "/get-all-category/:provinceId",
+  CategoriesController.getAllCategories
+);
 
 module.exports = router;

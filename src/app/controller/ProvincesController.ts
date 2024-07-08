@@ -44,7 +44,7 @@ class ProvincesController {
   }
   async changeStatusProvince(req: Request, res: Response) {
     try {
-      const { provinceId } = req.body;
+      const provinceId = req.params.id;
       if (!provinceId) {
         throw new CustomError(400, "Vui lòng truyền Id của tỉnh thành");
       }

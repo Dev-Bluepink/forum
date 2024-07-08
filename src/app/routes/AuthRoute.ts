@@ -152,7 +152,7 @@ router.post("/forgot-password", forgotPassword);
 /**
  * @swagger
  * /auth/reset-password:
- *   post:
+ *   put:
  *     summary: Đặt lại mật khẩu
  *     description: Đặt lại mật khẩu bằng mã OTP.
  *     tags: [Auth]
@@ -185,7 +185,7 @@ router.post("/forgot-password", forgotPassword);
  *       500:
  *         description: Lỗi server.
  */
-router.post("/reset-password", resetPassword);
+router.put("/reset-password", resetPassword);
 // Route để bắt đầu xác thực với Facebook
 router.get(
   "/facebook",

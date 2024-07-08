@@ -37,7 +37,7 @@ class CategoriesController {
   }
   async softDeleteCategory(req: Request, res: Response) {
     try {
-      const { categoryId } = req.body;
+      const categoryId = req.params.id;
       if (!categoryId) {
         throw new CustomError(400, "Vui lòng cung cấp id của danh mục");
       }

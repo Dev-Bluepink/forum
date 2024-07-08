@@ -8,6 +8,7 @@ export interface IThread {
   isDelete: boolean;
   title: string;
   path: string;
+  follow: number;
 }
 
 const ThreadsSchema = new Schema<IThread>(
@@ -20,6 +21,7 @@ const ThreadsSchema = new Schema<IThread>(
     },
     title: { type: String, required: true },
     path: { type: String, required: true },
+    follow: { type: Number, required: true, default: 0 },
     status: {
       type: String,
       enum: ["Accept", "Pending", "Reject"],

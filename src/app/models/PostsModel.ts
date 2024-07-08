@@ -18,8 +18,8 @@ const PostSchema: Schema = new Schema<IPosts>({
   content: { type: String, required: true },
   image: { type: String, required: false },
   title: { type: String, required: true },
-  view: { type: Number, required: true },
-  vote: { type: Number, required: true },
+  view: { type: Number, required: true, default: 0 },
+  vote: { type: Number, required: true, default: 0 },
 });
 
 const PostsModel = model("Posts", PostSchema);
