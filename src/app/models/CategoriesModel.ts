@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import ThreadsModel from "./ThreadsModel";
 
 export interface ICatogeries {
   _id: mongoose.Types.ObjectId;
@@ -21,6 +22,11 @@ const CategoriesSchema: Schema = new Schema<ICatogeries>(
     timestamps: true,
   }
 );
-
+CategoriesSchema.pre("save", async function (next) {
+  if (this.isModified("isDelete") && this.isDelete) {
+    await ThreadsModel.updateMany({ categoryId: this._id }, { isDelete: true });
+  }
+  next();
+});
 const CategoriesModel = model("Categories", CategoriesSchema);
 export default CategoriesModel;

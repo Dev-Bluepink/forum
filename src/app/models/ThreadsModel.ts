@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import PostsModel from "./PostsModel";
 
 export interface IThread {
   _id: mongoose.Types.ObjectId;
@@ -36,6 +37,16 @@ const ThreadsSchema = new Schema<IThread>(
     timestamps: true,
   }
 );
+
+ThreadsSchema.pre("save", async function (next) {
+  if (this.isModified("isDelete")) {
+    await PostsModel.updateMany(
+      { threadId: this._id },
+      { isDelete: this.isDelete }
+    );
+  }
+  next();
+});
 
 const ThreadsModel = model<IThread>("Threads", ThreadsSchema);
 export default ThreadsModel;

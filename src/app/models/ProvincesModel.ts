@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import CategoriesModel from "./CategoriesModel";
 
 export interface IProvince {
   _id: mongoose.Types.ObjectId;
@@ -15,6 +16,16 @@ const ProvincesSchema: Schema = new Schema<IProvince>(
     timestamps: true,
   }
 );
+
+ProvincesSchema.pre("save", async function (next) {
+  if (this.isModified("isDelete") && this.isDelete) {
+    await CategoriesModel.updateMany(
+      { provinceId: this._id },
+      { isDelete: true }
+    );
+  }
+  next();
+});
 
 const ProvincesModel = model("Provinces", ProvincesSchema);
 export default ProvincesModel;

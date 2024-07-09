@@ -59,7 +59,7 @@ class CategoriesController {
   }
   async getAllCategories(req: Request, res: Response) {
     try {
-      const provinceId = req.params.id;
+      const provinceId = req.params.provinceId;
       if (!provinceId) {
         throw new CustomError(400, "Vui lòng gửi Id của tỉnh thành");
       }

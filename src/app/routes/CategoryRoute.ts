@@ -1,3 +1,9 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Category
+ *   description: Quản lý danh mục
+ */
 import CategoriesController from "../controller/CategoriesController";
 import { uploadImage } from "../middleware/UploadImage";
 import { Router } from "express";
