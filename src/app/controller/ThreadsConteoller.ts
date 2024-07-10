@@ -2,6 +2,7 @@ import ThreadsService from "../service/ThreadsService";
 import { Request, Response } from "express";
 import CustomError from "../utils/customError";
 import CategoriesService from "../service/CategoriesService";
+import FollowThreadsService from "../service/FollowThreadsService";
 class ThreadsController {
   async addThread(req: Request, res: Response) {
     try {
@@ -33,9 +34,9 @@ class ThreadsController {
       res.status(201).json({ thread, message: "Tạo mới chủ đề thành công" });
     } catch (error) {
       if (error instanceof CustomError) {
-        throw new CustomError(error.status, error.message);
+        res.status(error.status).json({ message: error.message });
       } else {
-        throw new CustomError(500, "Lỗi máy chủ: " + error);
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
       }
     }
   }
@@ -55,9 +56,9 @@ class ThreadsController {
       });
     } catch (error) {
       if (error instanceof CustomError) {
-        throw new CustomError(error.status, error.message);
+        res.status(error.status).json({ message: error.message });
       } else {
-        throw new CustomError(500, "Lỗi máy chủ: " + error);
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
       }
     }
   }
@@ -78,9 +79,9 @@ class ThreadsController {
       });
     } catch (error) {
       if (error instanceof CustomError) {
-        throw new CustomError(error.status, error.message);
+        res.status(error.status).json({ message: error.message });
       } else {
-        throw new CustomError(500, "Lỗi máy chủ: " + error);
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
       }
     }
   }
@@ -106,9 +107,33 @@ class ThreadsController {
       res.status(200).json({ count, totalPage, threads });
     } catch (error) {
       if (error instanceof CustomError) {
-        throw new CustomError(error.status, error.message);
+        res.status(error.status).json({ message: error.message });
       } else {
-        throw new CustomError(500, "Lỗi máy chủ: " + error);
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
+      }
+    }
+  }
+  async followThread(req: Request, res: Response) {
+    try {
+      const { userId, threadId } = req.body;
+      if (!userId || !threadId) {
+        throw new CustomError(400, "Vui lòng cung cấp đầy đủ thông tin");
+      }
+      const followThread = await FollowThreadsService.followThread({
+        userId,
+        threadId,
+      });
+      if (!followThread) {
+        throw new CustomError(500, "Lỗi khi theo dõi chủ đề");
+      }
+      res
+        .status(200)
+        .json({ followThread, message: "Theo di chủ đề thành công" });
+    } catch (error) {
+      if (error instanceof CustomError) {
+        res.status(error.status).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
       }
     }
   }

@@ -8,7 +8,13 @@ class PostsController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const PAGE_SIZE = parseInt(req.query.pageSize as string) || 10;
-      const posts = await PostsService.newsFeed(page, PAGE_SIZE);
+      const userId = req.body.userId;
+      let posts;
+      if (!userId) {
+        posts = await PostsService.newsFeed(page, PAGE_SIZE);
+      } else {
+        posts = await PostsService.newsFeed(page, PAGE_SIZE, userId);
+      }
       const count = await PostsService.countPosts();
       const totalPages = Math.ceil(count / PAGE_SIZE);
       res.status(200).json({ posts, totalPages });
@@ -23,7 +29,7 @@ class PostsController {
 
   async createPost(req: Request, res: Response) {
     try {
-      const { title, content, threadId } = req.body;
+      const { title, content, threadId, tagId, userId } = req.body;
       const image = req.cloudinaryUrl;
 
       if (!title || !content || !threadId) {
@@ -37,9 +43,18 @@ class PostsController {
       const categoryId = thread.categoryId;
       let info: {};
       if (image) {
-        info = { title, content, threadId, path, categoryId, image };
+        info = {
+          title,
+          content,
+          threadId,
+          path,
+          categoryId,
+          image,
+          tagId,
+          userId,
+        };
       } else {
-        info = { title, content, threadId, path, categoryId };
+        info = { title, content, threadId, path, categoryId, tagId, userId };
       }
       const post = await PostsService.addPost(info);
       res.status(201).json(post);

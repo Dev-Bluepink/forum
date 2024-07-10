@@ -6,10 +6,12 @@ const ProvinceRoute = require("./ProvinceRoute");
 const CategoryRoute = require("./CategoryRoute");
 const ThreadRoute = require("./ThreadsRoute");
 const PostRoute = require("./PostRoute");
+const CommentRoute = require("./CommentRoute");
 
 export function route(app: Express) {
   app.use("/caterory", CategoryRoute);
   app.use("/province", ProvinceRoute);
+  app.use("/comment", CommentRoute);
   app.use("/thread", ThreadRoute);
   app.use("/post", PostRoute);
   app.use("/user", UserRoute);

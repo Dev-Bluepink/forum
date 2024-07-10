@@ -162,16 +162,82 @@ class PostsService {
     }
   }
 
-  async newsFeed(page: number, PAGE_SIZE: number) {
+  async newsFeed(page: number, PAGE_SIZE: number, userId?: string) {
     try {
-      const posts = await PostsModel.find({
-        isDelete: false,
-      })
-        .skip((page - 1) * PAGE_SIZE)
-        .limit(PAGE_SIZE)
-        .sort({ createdAt: -1 });
+      let posts;
+      if (!userId) {
+        posts = await PostsModel.find({ isDelete: false })
+          .skip((page - 1) * PAGE_SIZE)
+          .limit(PAGE_SIZE)
+          .sort({
+            createdAt: -1,
+          });
+      } else {
+        posts = await PostsModel.aggregate([
+          { $match: { isDelete: false } },
+          { $skip: (page - 1) * PAGE_SIZE },
+          { $limit: PAGE_SIZE },
+          {
+            $lookup: {
+              from: "FollowThreads",
+              let: { threadId: "$threadId", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$threadId", "$$threadId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isFollow", true] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isFollow",
+            },
+          },
+          {
+            $addFields: {
+              isFollow: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isFollow" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "Votes",
+              let: { postId: "$_id", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { vote: 1 } },
+              ],
+              as: "votes",
+            },
+          },
+          {
+            $addFields: {
+              votes: { $first: "$votes.vote" },
+            },
+          },
+          { $sort: { createdAt: -1 } },
+        ]);
+      }
       if (!posts) {
-        console.log(" đã tới đây");
         throw new CustomError(204, "Không tìm thấy bài viết");
       }
       return posts;

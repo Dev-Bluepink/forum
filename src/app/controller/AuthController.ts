@@ -101,8 +101,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: "Email chứa mã OTP đã được gửi" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Lỗi server" });
+    if (error instanceof CustomError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Lỗi máy chủ: " + error });
+    }
   }
 };
 

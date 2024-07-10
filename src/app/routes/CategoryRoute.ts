@@ -42,7 +42,7 @@ router.post("/add-category", uploadImage, CategoriesController.addCategory);
 /**
  * @swagger
  * /category/delete-category/{id}:
- *   put:
+ *   delete:
  *     summary: Xóa mềm danh mục
  *     tags: [Category]
  *     parameters:
@@ -62,7 +62,7 @@ router.post("/add-category", uploadImage, CategoriesController.addCategory);
  *       500:
  *         description: Lỗi máy chủ
  */
-router.put("/delete-category/:id", CategoriesController.softDeleteCategory);
+router.delete("/delete-category/:id", CategoriesController.softDeleteCategory);
 /**
  * @swagger
  * /category/get-all-category/{provinceId}:

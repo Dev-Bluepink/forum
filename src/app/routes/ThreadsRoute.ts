@@ -114,4 +114,33 @@ router.put("/reject-thread/:id", ThreadsConteoller.rejectThread);
  */
 router.get("/get-all-threads/:categoryId", ThreadsConteoller.getAllThreads);
 
+/**
+ * @swagger
+ * /thread/follow-thread:
+ *   post:
+ *     summary: Theo dõi chủ đề
+ *     tags: [Thread]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng
+ *               threadId:
+ *                 type: string
+ *                 description: ID của chủ đề
+ *     responses:
+ *       200:
+ *         description: Theo dõi chủ đề thành công
+ *       400:
+ *         description: Thiếu thông tin cần thiết
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post("/follow-thread", ThreadsConteoller.followThread);
+
 module.exports = router;

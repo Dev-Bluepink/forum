@@ -33,9 +33,71 @@ const router = express.Router();
  *         schema:
  *           type: integer
  *         description: Kích thước trang
+ *       - in: body
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
  *     responses:
  *       200:
  *         description: Danh sách bài viết mới nhất
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 posts:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: ID của bài viết
+ *                       threadId:
+ *                         type: string
+ *                         description: ID của luận điểm
+ *                       userId:
+ *                         type: string
+ *                         description: ID của người dùng
+ *                       tagId:
+ *                         type: string
+ *                         description: ID của thẻ
+ *                       content:
+ *                         type: string
+ *                         description: Nội dung bài viết
+ *                       image:
+ *                         type: string
+ *                         description: Hình ảnh của bài viết
+ *                       title:
+ *                         type: string
+ *                         description: Tiêu đề của bài viết
+ *                       view:
+ *                         type: integer
+ *                         description: Số lượt xem
+ *                       vote:
+ *                         type: integer
+ *                         description: Số lượt bình chọn
+ *                       path:
+ *                         type: string
+ *                         description: Đường dẫn của bài viết
+ *                       status:
+ *                         type: string
+ *                         description: Trạng thái của bài viết
+ *                         enum: ["active", "inactive"]
+ *                       isDeleted:
+ *                         type: boolean
+ *                         description: Trạng thái xóa của bài viết
+ *                       countReport:
+ *                         type: integer
+ *                         description: Số lần báo cáo
+ *                       isFollow:
+ *                         type: boolean
+ *                         description: Trạng thái theo dõi của chủ đề
+ *                 totalPages:
+ *                   type: integer
+ *       400:
+ *         description: Thiếu thông tin cần thiết
  *       500:
  *         description: Lỗi máy chủ
  */
@@ -78,7 +140,7 @@ router.post("/create-post", uploadImageToUpdate, PostsController.createPost);
 /**
  * @swagger
  * /post/soft-delete-post/{id}:
- *   put:
+ *   delete:
  *     summary: Xóa mềm bài viết
  *     tags: [Posts]
  *     parameters:
@@ -96,7 +158,7 @@ router.post("/create-post", uploadImageToUpdate, PostsController.createPost);
  *       500:
  *         description: Lỗi máy chủ
  */
-router.put("/soft-delete-post/:id", PostsController.softDeletePost);
+router.delete("/soft-delete-post/:id", PostsController.softDeletePost);
 
 /**
  * @swagger
