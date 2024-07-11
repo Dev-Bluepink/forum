@@ -323,4 +323,44 @@ router.post("/downvote-post/:postId", PostsController.downVotePost);
  */
 router.post("/report-post/:postId", ReportController.createReport);
 
+/**
+ * @swagger
+ * /post/search-posts:
+ *   post:
+ *     summary: Tìm kiếm bài viết
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: query
+ *         name: keyword
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Từ khóa tìm kiếm
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Số trang
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *         description: Kích thước trang
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Danh sách bài viết tìm kiếm thành công
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post("/search-posts", PostsController.searchPosts);
+
 module.exports = router;

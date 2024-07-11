@@ -179,6 +179,17 @@ class PostsService {
           { $limit: PAGE_SIZE },
           {
             $lookup: {
+              from: "Tags",
+              let: { postId: "$_id" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
+              ],
+              as: "tags",
+            },
+          },
+          { $addFields: { tags: { $first: "$tags" } } },
+          {
+            $lookup: {
               from: "FollowThreads",
               let: { threadId: "$threadId", userId: userId },
               pipeline: [
@@ -296,13 +307,195 @@ class PostsService {
       }
     }
   }
-  async getPostById(postId: string) {
+  async getPostById(postId: string, userId?: string) {
     try {
-      const post = await PostsModel.findById(postId);
+      let post;
+      if (!userId) {
+        post = await PostsModel.findOne({ _id: postId, isDelete: false });
+      } else {
+        post = await PostsModel.aggregate([
+          { $match: { isDelete: false } },
+          {
+            $lookup: {
+              from: "Tags",
+              let: { postId: "$_id" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
+              ],
+              as: "tags",
+            },
+          },
+          { $addFields: { tags: { $first: "$tags" } } },
+          {
+            $lookup: {
+              from: "FollowThreads",
+              let: { threadId: "$threadId", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$threadId", "$$threadId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isFollow", true] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isFollow",
+            },
+          },
+          {
+            $addFields: {
+              isFollow: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isFollow" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "Votes",
+              let: { postId: "$_id", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { vote: 1 } },
+              ],
+              as: "votes",
+            },
+          },
+          {
+            $addFields: {
+              votes: { $first: "$votes.vote" },
+            },
+          },
+          { $sort: { createdAt: -1 } },
+        ]);
+      }
       if (!post) {
         throw new CustomError(204, "Không tìm thấy bài viết");
       }
       return post;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
+  async searchPosts(
+    keyword: string,
+    page: number,
+    PAGE_SIZE: number,
+    userId?: string
+  ) {
+    try {
+      let posts;
+      if (!userId) {
+        posts = await PostsModel.find({
+          isDelete: false,
+          title: { $regex: keyword },
+        })
+          .skip((page - 1) * PAGE_SIZE)
+          .limit(PAGE_SIZE)
+          .sort({
+            createdAt: -1,
+          });
+      } else {
+        posts = await PostsModel.aggregate([
+          { $match: { isDelete: false, title: { $regex: keyword } } },
+          { $skip: (page - 1) * PAGE_SIZE },
+          { $limit: PAGE_SIZE },
+          {
+            $lookup: {
+              from: "Tags",
+              let: { postId: "$_id" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
+              ],
+              as: "tags",
+            },
+          },
+          { $addFields: { tags: { $first: "$tags" } } },
+          {
+            $lookup: {
+              from: "FollowThreads",
+              let: { threadId: "$threadId", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$threadId", "$$threadId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isFollow", true] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isFollow",
+            },
+          },
+          {
+            $addFields: {
+              isFollow: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isFollow" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "Votes",
+              let: { postId: "$_id", userId: userId },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { vote: 1 } },
+              ],
+              as: "votes",
+            },
+          },
+          {
+            $addFields: {
+              votes: { $first: "$votes.vote" },
+            },
+          },
+          { $sort: { createdAt: -1 } },
+        ]);
+      }
+      if (!posts) {
+        throw new CustomError(204, "Không tìm thấy bài viết");
+      }
+      return posts;
     } catch (error) {
       if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);

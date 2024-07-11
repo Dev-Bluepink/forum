@@ -9,10 +9,10 @@ class ReportController {
       const postId = req.params.postId;
       const { userId, reason } = req.body;
       const post = await PostsService.getPostById(postId);
-      if (!post) {
+      if (!post || Array.isArray(post)) {
         throw new CustomError(404, "Không tìm thấy bài viết");
       }
-      const countReport: number = post.countReport as number;
+      const countReport: number = (post as any).countReport as number;
       if (countReport >= 3) {
         await PostsService.softDeletePost(postId);
       }

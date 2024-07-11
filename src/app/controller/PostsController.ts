@@ -154,6 +154,41 @@ class PostsController {
       }
     }
   }
+  async searchPosts(req: Request, res: Response) {
+    try {
+      const keyword = req.query.keyword as string;
+      const page = parseInt(req.query.page as string) || 1;
+      const PAGE_SIZE = parseInt(req.query.pageSize as string) || 10;
+      const userId = req.body.userId;
+      if (userId) {
+        const posts = await PostsService.searchPosts(
+          keyword,
+          page,
+          PAGE_SIZE,
+          userId
+        );
+        res.status(200).json(posts);
+      } else {
+        const posts = await PostsService.searchPosts(keyword, page, PAGE_SIZE);
+        res.status(200).json(posts);
+      }
+    } catch (error) {
+      if (error instanceof CustomError) {
+        res.status(error.status).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
+      }
+    }
+  }
+  async getPostById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const post = await PostsService.getPostById(id);
+      res.status(200).json(post);
+    } catch (error) {
+      res.status(500).json({ message: "Lỗi máy chủ: " + error });
+    }
+  }
 }
 
 export default new PostsController();

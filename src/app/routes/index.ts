@@ -7,8 +7,10 @@ const CategoryRoute = require("./CategoryRoute");
 const ThreadRoute = require("./ThreadsRoute");
 const PostRoute = require("./PostRoute");
 const CommentRoute = require("./CommentRoute");
+const CategoriesOfKnowledgeRoute = require("./CategoriesOfKnowledgeRoute");
 
 export function route(app: Express) {
+  app.use("/categories-of-knowledge", CategoriesOfKnowledgeRoute);
   app.use("/caterory", CategoryRoute);
   app.use("/province", ProvinceRoute);
   app.use("/comment", CommentRoute);

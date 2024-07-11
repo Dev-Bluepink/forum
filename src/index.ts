@@ -6,12 +6,13 @@ import { connect } from "./app/config/db";
 import passport from "passport";
 import swaggerSpec from "./app/config/swagger";
 import swaggerUi from "swagger-ui-express";
+import cors from "cors";
 import "dotenv/config";
 
 const port = process.env.PORT || 3000;
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
