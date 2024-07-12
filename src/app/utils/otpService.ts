@@ -34,6 +34,8 @@ export function storeOTP(req: Request, email: string, otp: string): void {
 // Hàm lấy OTP từ session
 export function getOTP(req: Request, email: string): OTPRecord | null {
   if (req.session.otps && req.session.otps[email]) {
+    console.log("đây là thông tin getOTP");
+    console.log(req.session.otps[email]);
     return req.session.otps[email];
   }
   return null;
