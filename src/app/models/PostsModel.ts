@@ -3,6 +3,7 @@ import mongoose, { Schema, model } from "mongoose";
 export interface IPosts {
   _id: mongoose.Types.ObjectId;
   threadId: mongoose.Types.ObjectId;
+  categoryId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   tagId: mongoose.Types.ObjectId;
   content: string;
@@ -26,12 +27,17 @@ export interface IPosts {
   content5: string;
 }
 const PostSchema: Schema = new Schema<IPosts>({
-  threadId: { type: Schema.Types.ObjectId, ref: "Threads", required: true },
+  threadId: { type: Schema.Types.ObjectId, ref: "Threads", required: false },
+  categoryId: {
+    type: Schema.Types.ObjectId,
+    ref: "CategoriesOfKnowledges",
+    required: false,
+  },
   userId: { type: Schema.Types.ObjectId, ref: "Users", required: true },
-  tagId: { type: Schema.Types.ObjectId, ref: "Tags", required: true },
-  content: { type: String, required: true },
+  tagId: { type: Schema.Types.ObjectId, ref: "Tags", required: false },
+  content: { type: String, required: false },
   image: { type: String, required: false },
-  title: { type: String, required: true },
+  title: { type: String, required: false },
   view: { type: Number, required: true, default: 0 },
   vote: { type: Number, required: true, default: 0 },
   path: { type: String, required: true },

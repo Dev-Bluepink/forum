@@ -152,7 +152,12 @@ class UserService {
     if (user.password) updateFields.password = hashPassword(user.password);
     if (user.fullname) updateFields.fullname = user.fullname;
     if (user.avatar) updateFields.avatar = user.avatar;
-    if (user.role) updateFields.role = user.role;
+    if (user.city) updateFields.city = user.city;
+    if (user.district) updateFields.district = user.district;
+    if (user.ward) updateFields.ward = user.ward;
+    if (user.street) updateFields.street = user.street;
+    if (user.phone_number) updateFields.phone_number = user.phone_number;
+    if (user.birthday) updateFields.birthday = user.birthday;
     try {
       if (Object.keys(updateFields).length === 0) {
         const errorMessage = "Không có trường nào được cập nhật";

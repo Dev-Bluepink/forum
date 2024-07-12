@@ -61,7 +61,21 @@ class UserController {
   }
   async updateUser(req: Request, res: Response) {
     try {
-      const user = await UserService.updateUser(req.params.id, req.body);
+      const {
+        firstName,
+        lastName,
+        birthday,
+        city,
+        district,
+        ward,
+        street,
+        phone_number,
+        fullname,
+      } = req.body;
+      const data: { fullname: string } = { fullname };
+      console.log(data.fullname);
+
+      const user = await UserService.updateUser(req.params.id, data);
       if (!user) {
         return res.status(404).json({ message: "Người dùng không tồn tại" });
       }

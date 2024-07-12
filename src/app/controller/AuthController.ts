@@ -111,6 +111,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
 export const resetPassword = async (req: Request, res: Response) => {
   const { email, otp, newPassword } = req.body;
+  console.log(email, otp, newPassword + "đây là thông tin reset password");
 
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ message: "Thiếu thông tin cần thiết" });
