@@ -19,6 +19,7 @@ declare global {
   namespace Express {
     export interface Request {
       cloudinaryUrl?: string;
+      cloudinaryUrls?: string[];
     }
   }
 }
@@ -74,5 +75,43 @@ export const uploadImageToUpdate = async (
         next();
       })
       .end(req.file.buffer);
+  });
+};
+
+export const uploadImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  uploadToCloudinary(req, res, async function (err) {
+    // Thêm async ở đây
+    if (err) {
+      return res.status(500).json({ message: "Lỗi khi tải Ảnh" });
+    }
+    if (!req.files || !Array.isArray(req.files)) {
+      return res.status(400).json({ message: "Không có Ảnh được tải lên" });
+    }
+
+    const uploadPromises = (req.files as Express.Multer.File[]).map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream({ resource_type: "auto" }, (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result!.url);
+              }
+            })
+            .end(file.buffer);
+        })
+    );
+
+    try {
+      req.cloudinaryUrls = await Promise.all(uploadPromises); // Lưu URL của các ảnh vào req để sử dụng ở các middleware tiếp theo
+      next();
+    } catch (error) {
+      res.status(500).json({ error: "Lỗi khi tải ảnh lên Cloudinary." });
+    }
   });
 };

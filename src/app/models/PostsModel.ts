@@ -14,6 +14,16 @@ export interface IPosts {
   status: string;
   isDeleted: boolean;
   countReport: number;
+  image1: string;
+  image2: string;
+  image3: string;
+  image4: string;
+  image5: string;
+  content1: string;
+  content2: string;
+  content3: string;
+  content4: string;
+  content5: string;
 }
 const PostSchema: Schema = new Schema<IPosts>({
   threadId: { type: Schema.Types.ObjectId, ref: "Threads", required: true },
@@ -32,6 +42,16 @@ const PostSchema: Schema = new Schema<IPosts>({
   },
   isDeleted: { type: Boolean, default: false },
   countReport: { type: Number, default: 0 },
+  image1: { type: String, required: false },
+  image2: { type: String, required: false },
+  image3: { type: String, required: false },
+  image4: { type: String, required: false },
+  image5: { type: String, required: false },
+  content1: { type: String, required: false },
+  content2: { type: String, required: false },
+  content3: { type: String, required: false },
+  content4: { type: String, required: false },
+  content5: { type: String, required: false },
 });
 
 const PostsModel = model("Posts", PostSchema);

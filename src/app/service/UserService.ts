@@ -91,11 +91,11 @@ class UserService {
     //Kiểm tra xem username và password có hợp lệ không
     const user = await UserModel.findOne({ username });
     if (!user) {
-      throw new CustomError(204, "User không tồn tại"); // 204 Not Found
+      throw new CustomError(401, "User không tồn tại"); // 204 Not Found
     }
     const isPasswordValid = comparePassword(password, user.password);
     if (!isPasswordValid) {
-      throw new CustomError(201, "Password không đúng"); // 401 Unauthorized
+      throw new CustomError(401, "Password không đúng"); // 401 Unauthorized
     }
     return true;
   }
