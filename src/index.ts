@@ -12,24 +12,25 @@ import "dotenv/config";
 const port = process.env.PORT || 3000;
 
 const app = express();
-const allowedOrigins = [
-  "https://donghanhcungcon.vn",
-  "https://blogmevabe-fe.vercel.app",
-  "http://localhost:3000",
-];
+// const allowedOrigins = [
+//   "https://donghanhcungcon.vn",
+//   "https://blogmevabe-fe.vercel.app",
+//   "http://localhost:3000",
+// ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
+app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -41,7 +42,7 @@ app.use(
     secret: "your_secret_key",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to true if you use HTTPS
+    cookie: { secure: true }, // Set to true if you use HTTPS
   })
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

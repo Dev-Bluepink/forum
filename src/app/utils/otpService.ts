@@ -26,6 +26,9 @@ export function storeOTP(req: Request, email: string, otp: string): void {
   if (!req.session.otps) {
     req.session.otps = {};
   }
+  if (req.session.otps[email]) {
+    delete req.session.otps[email];
+  }
   req.session.otps[email] = otpRecord;
   console.log("đây là thông tin storeOTP");
   console.log(req.session.otps);
