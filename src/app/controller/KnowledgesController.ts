@@ -27,7 +27,6 @@ class KnowledgesController {
       info = {
         userId,
         title,
-        content,
         categoryId,
         image1,
         image2,

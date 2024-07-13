@@ -12,9 +12,21 @@ import "dotenv/config";
 const port = process.env.PORT || 3000;
 
 const app = express();
+const allowedOrigins = [
+  "https://donghanhcungcon.vn/",
+  "https://blogmevabe-fe.vercel.app/",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: "https://donghanhcungcon.vn/",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
