@@ -29,6 +29,7 @@ export function storeOTP(req: Request, email: string, otp: string): void {
   req.session.otps[email] = otpRecord;
   console.log("đây là thông tin storeOTP");
   console.log(req.session.otps);
+  console.log("Session ID:", req.sessionID); // Thêm log session ID
 }
 
 // Hàm lấy OTP từ session
@@ -45,6 +46,7 @@ export function getOTP(req: Request, email: string): OTPRecord | null {
 export function verifyOTP(req: Request, email: string, otp: string): boolean {
   console.log("đây là thông tin verifyOTP");
   console.log(req.session.otps);
+  console.log("Session ID:", req.sessionID); // Thêm log session ID
   console.log(email);
   console.log(otp);
   const otpRecord = getOTP(req, email);
