@@ -13,8 +13,8 @@ const port = process.env.PORT || 3000;
 
 const app = express();
 const allowedOrigins = [
-  "https://donghanhcungcon.vn/",
-  "https://blogmevabe-fe.vercel.app/",
+  "https://donghanhcungcon.vn",
+  "https://blogmevabe-fe.vercel.app",
   "http://localhost:3000",
 ];
 
