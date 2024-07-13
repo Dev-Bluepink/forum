@@ -11,7 +11,7 @@ const CategoriesOfKnowledgeRoute = require("./CategoriesOfKnowledgeRoute");
 
 export function route(app: Express) {
   app.use("/categories-of-knowledge", CategoriesOfKnowledgeRoute);
-  app.use("/caterory", CategoryRoute);
+  app.use("/category", CategoryRoute);
   app.use("/province", ProvinceRoute);
   app.use("/comment", CommentRoute);
   app.use("/thread", ThreadRoute);

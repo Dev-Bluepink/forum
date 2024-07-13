@@ -7,9 +7,9 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: "dsstvyezw",
+  api_key: "855277194985899",
+  api_secret: "_q-ReMr1bmHvaVl-hl-yhv7LWQQ",
 });
 
 const uploadToCloudinary = upload.single("image");
@@ -36,13 +36,15 @@ export const uploadImage = async (
     if (!req.file) {
       return res.status(400).json({ message: "Không có Ảnh được tải lên" });
     }
+    console.log("đã có ảnh");
 
     cloudinary.uploader
       .upload_stream({ resource_type: "auto" }, (error, result) => {
         if (error) {
-          return res
-            .status(500)
-            .json({ error: "Lỗi khi tải ảnh lên Cloudinary." });
+          console.log(error);
+          return res.status(500).json({
+            error: `Lỗi khi tải ảnh lên Cloudinary. ${error.message}`,
+          });
         }
         req.cloudinaryUrl = result!.url; // Lưu URL của ảnh vào req để sử dụng ở các middleware tiếp theo
         next();
