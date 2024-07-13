@@ -52,6 +52,8 @@ class ProvincesService {
   }
   async getAllProvinces(page: number, PAGE_SIZE: number) {
     try {
+      console.log("đã tới get all provices");
+      
       // const provinces = await ProvincesModel.find({ isDelete: false })
       //   .skip((page - 1) * PAGE_SIZE)
       //   .limit(PAGE_SIZE);

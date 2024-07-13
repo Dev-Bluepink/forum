@@ -81,7 +81,7 @@ router.delete("/delete-category/:id", CategoriesController.softDeleteCategory);
  *           type: integer
  *         description: Kích thước trang
  *       - in: path
- *         name: id
+ *         name: provinceId
  *         schema:
  *           type: string
  *         required: true

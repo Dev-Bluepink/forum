@@ -10,11 +10,20 @@ const router = Router();
 
 /**
  * @swagger
- * /thread/add-thread:
+ * /thread/add-thread/{id}:
  *   post:
  *     summary: Thêm chủ đề mới
- *     tags: [Thread]
+ *     tags:
+ *       - Thread
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID của danh mục
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
+ *       description: Thông tin chủ đề mới
  *       required: true
  *       content:
  *         application/json:
@@ -23,8 +32,10 @@ const router = Router();
  *             properties:
  *               userId:
  *                 type: string
+ *                 description: ID của người dùng tạo chủ đề
  *               title:
  *                 type: string
+ *                 description: Tiêu đề của chủ đề mới
  *     responses:
  *       201:
  *         description: Tạo mới chủ đề thành công
@@ -33,7 +44,8 @@ const router = Router();
  *       500:
  *         description: Lỗi máy chủ
  */
-router.post("/add-thread", ThreadsConteoller.addThread);
+
+router.post("/add-thread/:id", ThreadsConteoller.addThread);
 
 /**
  * @swagger

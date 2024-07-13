@@ -20,24 +20,26 @@ const router = express.Router();
  * @swagger
  * /post/news-feed:
  *   get:
- *     summary: Lấy danh sách bài viết mới nhất
+ *     summary: Lấy danh sách bài viết mới nhất (news feed)
  *     tags: [Posts]
  *     parameters:
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Số trang
+ *           minimum: 1
+ *         description: Số trang (mặc định là 1)
  *       - in: query
  *         name: pageSize
  *         schema:
  *           type: integer
- *         description: Kích thước trang
- *       - in: body
+ *           minimum: 1
+ *         description: Số lượng bài viết trên mỗi trang (mặc định là 10)
+ *       - in: query
  *         name: userId
  *         schema:
  *           type: string
- *         description: ID của người dùng
+ *         description: (Optional) ID của người dùng để lấy news feed cá nhân
  *     responses:
  *       200:
  *         description: Danh sách bài viết mới nhất
@@ -125,13 +127,15 @@ router.get("/news-feed", PostsController.newsFeed);
  *                 type: string
  *               threadId:
  *                 type: string
+ *               tagId:
+ *                 type: string
+ *               userId:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Bài viết đã được tạo thành công
  *       400:
- *         description: Thiếu thông tin cần thiết
- *       404:
- *         description: Không tồn tại luận điểm
+ *         description: Thiếu thông tin cần thiết hoặc chủ đề không tồn tại
  *       500:
  *         description: Lỗi máy chủ
  */

@@ -66,15 +66,11 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const loginGG = (req: Request, res: Response) => {
-  console.log("Google callback successful");
-
   const user = req.user as IUser;
   if (!user) {
     return res.status(400).send("User không tồn tại");
   }
-  console.log(user);
   const token = tokenSign(user._id.toString());
-  console.log(token);
   res.cookie("tokenLogin", token, {
     expires: new Date(Date.now() + 18000000000),
   });

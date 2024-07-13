@@ -6,18 +6,17 @@ import { Response, Request } from "express";
 class CategoriesController {
   async addCategory(req: Request, res: Response) {
     try {
-      const image = req.cloudinaryUrl;
-      if (!image) {
-        throw new CustomError(400, "Thiếu hình ảnh của danh mục");
-      }
       const { provinceId, name } = req.body;
       if (!provinceId || !name) {
         throw new CustomError(400, "Thiếu thông tin để tạo danh mục");
       }
-
       const province = await ProvincesService.findProvinceById(provinceId);
       if (!province) {
         throw new CustomError(204, "Lỗi không tìm thấy tỉnh thành bằng Id");
+      }
+      const image = req.cloudinaryUrl;
+      if (!image) {
+        throw new CustomError(400, "Thiếu hình ảnh của danh mục");
       }
       const path: string = String(province.name);
       const category = await CategoriesService.addCategory(
@@ -26,7 +25,9 @@ class CategoriesController {
         image,
         path
       );
-      return category;
+      console.log("đã tạo mới danh mục thành công");
+      
+      res.status(201).json({category,message: `Đã tạo danh mục ${category.name} của ${province.name} thành công`})
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).send(error.message);
@@ -72,7 +73,7 @@ class CategoriesController {
         PAGE_SIZE,
         provinceId
       );
-      const count = await CategoriesService.countCategories();
+      const count = await CategoriesService.countCategories(provinceId);
       const totalPage = Math.ceil(count / PAGE_SIZE);
       res.status(200).json({ count, totalPage, categogy });
     } catch (error) {

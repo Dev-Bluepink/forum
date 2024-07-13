@@ -8,16 +8,18 @@ class PostsController {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const PAGE_SIZE = parseInt(req.query.pageSize as string) || 10;
-      const userId = req.body.userId;
+      const userId = req.query.userId as string;
+
       let posts;
       if (!userId) {
         posts = await PostsService.newsFeed(page, PAGE_SIZE);
       } else {
+        console.log("Đã tới newfeeds có user");
         posts = await PostsService.newsFeed(page, PAGE_SIZE, userId);
       }
       const count = await PostsService.countPosts();
       const totalPages = Math.ceil(count / PAGE_SIZE);
-      res.status(200).json({ posts, totalPages });
+      res.status(200).json({ posts, count, totalPages });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).json({ message: error.message });
@@ -37,7 +39,7 @@ class PostsController {
       }
       const thread = await ThreadsModel.findById(threadId);
       if (!thread) {
-        throw new CustomError(404, "Không tồn tại luận điểm");
+        throw new CustomError(400, "Không tồn tại chủ đề");
       }
       const path = `${thread.path}/${thread.title}`;
       const categoryId = thread.categoryId;

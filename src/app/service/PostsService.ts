@@ -24,7 +24,7 @@ class PostsService {
     try {
       const post = await PostsModel.findByIdAndUpdate(
         id,
-        { isDelete: true },
+        { isDeleted: true },
         {
           new: true,
         }
@@ -166,28 +166,33 @@ class PostsService {
     try {
       let posts;
       if (!userId) {
-        posts = await PostsModel.find({ isDelete: false })
+        posts = await PostsModel.find({ isDeleted: false })
           .skip((page - 1) * PAGE_SIZE)
           .limit(PAGE_SIZE)
           .sort({
             createdAt: -1,
+          })
+          .populate({
+            path: "tagId",
+            select: "name",
+            match: { isDelete: false },
           });
       } else {
         posts = await PostsModel.aggregate([
-          { $match: { isDelete: false } },
+          { $match: { isDeleted: false } },
           { $skip: (page - 1) * PAGE_SIZE },
           { $limit: PAGE_SIZE },
           {
             $lookup: {
-              from: "Tags",
-              let: { postId: "$_id" },
-              pipeline: [
-                { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
-              ],
+              from: "tags",
+              localField: "tagId",
+              foreignField: "_id",
               as: "tags",
+              pipeline: [{ $match: { isDelete: false } }, { $limit: 1 }],
             },
           },
-          { $addFields: { tags: { $first: "$tags" } } },
+          { $addFields: { tagName: { $first: "$tags.name" } } }, // Thêm trường tagName
+          { $unset: "tags" }, // Loại bỏ trường "tags"
           {
             $lookup: {
               from: "FollowThreads",
@@ -242,7 +247,7 @@ class PostsService {
           },
           {
             $addFields: {
-              votes: { $first: "$votes.vote" },
+              votes: { $ifNull: [{ $first: "$votes.vote" }, "none"] }, // Sử dụng $ifNull
             },
           },
           { $sort: { createdAt: -1 } },
@@ -262,7 +267,7 @@ class PostsService {
   }
   async countPosts() {
     try {
-      const count = await PostsModel.countDocuments({ isDelete: false });
+      const count = await PostsModel.countDocuments({ isDeleted: false });
       if (!count) {
         throw new CustomError(204, "Lỗi khi đếm tổng số bài viết");
       }
@@ -311,10 +316,10 @@ class PostsService {
     try {
       let post;
       if (!userId) {
-        post = await PostsModel.findOne({ _id: postId, isDelete: false });
+        post = await PostsModel.findOne({ _id: postId, isDeleted: false });
       } else {
         post = await PostsModel.aggregate([
-          { $match: { isDelete: false } },
+          { $match: { isDeleted: false } },
           {
             $lookup: {
               from: "Tags",
@@ -389,6 +394,11 @@ class PostsService {
       if (!post) {
         throw new CustomError(204, "Không tìm thấy bài viết");
       }
+      await PostsModel.findByIdAndUpdate(
+        postId,
+        { $inc: { view: 1 } }, // Tăng trường view lên 1
+        { new: true } // Trả về document đã được cập nhật
+      );
       return post;
     } catch (error) {
       if (error instanceof CustomError) {
@@ -408,7 +418,7 @@ class PostsService {
       let posts;
       if (!userId) {
         posts = await PostsModel.find({
-          isDelete: false,
+          isDeleted: false,
           title: { $regex: keyword },
         })
           .skip((page - 1) * PAGE_SIZE)
@@ -418,7 +428,7 @@ class PostsService {
           });
       } else {
         posts = await PostsModel.aggregate([
-          { $match: { isDelete: false, title: { $regex: keyword } } },
+          { $match: { isDeleted: false, title: { $regex: keyword } } },
           { $skip: (page - 1) * PAGE_SIZE },
           { $limit: PAGE_SIZE },
           {

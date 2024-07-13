@@ -1,5 +1,6 @@
 import CategoriesModel from "../models/CategoriesModel";
 import CustomError from "../utils/customError";
+import mongoose from "mongoose";
 
 class CategoriesService {
   async addCategory(
@@ -53,12 +54,10 @@ class CategoriesService {
   }
   async getAllCategories(page: number, PAGE_SIZE: number, provinceId?: string) {
     try {
-      const filter = provinceId ? provinceId : {};
+      const filter = provinceId ? {provinceId: new mongoose.Types.ObjectId(provinceId), isDelete: false} : {};
       // const categories = await CategoriesModel.find(filter)
       //   .skip((page - 1) * limit)
       //   .limit(limit);
-      console.log("đây là filter", provinceId);
-      console.log("đây là filter", filter);
       const categories = await CategoriesModel.aggregate([
         {
           $match: filter,
@@ -69,27 +68,26 @@ class CategoriesService {
         {
           $limit: PAGE_SIZE,
         },
-        // {
-        //   $lookup: {
-        //     from: "Threads",
-        //     localField: "_id",
-        //     foreignField: "threadId",
-        //     as: "threads",
-        //     pipeline: [{ $match: { isDelete: false } }],
-        //   },
-        // },
-        // { $addFields: { numThreads: { $size: "$threads" } } },
+        {
+          $lookup: {
+            from: "Threads",
+            localField: "_id",
+            foreignField: "threadId",
+            as: "threads",
+            pipeline: [{ $match: { isDelete: false } }],
+          },
+        },
+        { $addFields: { numThreads: { $size: "$threads" } } },
         { $sort: { updatedAt: -1 } },
-        // {
-        //   $project: {
-        //     _id: 1,
-        //     name: 1,
-        //     image: 1,
-        //     numThreads: 1,
-        //   },
-        // },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            image: 1,
+            numThreads: 1,
+          },
+        },
       ]);
-      console.log("đây là danh sách categories", categories);
       if (!categories) {
         throw new CustomError(204, "Không tìm thấy danh mục nào!!");
       }
@@ -105,7 +103,7 @@ class CategoriesService {
 
   async countCategories(provinceId?: string) {
     try {
-      const filter = provinceId ? { provinceId } : {};
+      const filter = provinceId ? { provinceId, isDelete: false } : {};
       const count = await CategoriesModel.countDocuments(filter);
       if (!count) {
         throw new CustomError(204, "Lỗi khi đếm tổng số danh mục");

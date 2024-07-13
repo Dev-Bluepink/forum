@@ -7,6 +7,7 @@ const CategoryRoute = require("./CategoryRoute");
 const ThreadRoute = require("./ThreadsRoute");
 const PostRoute = require("./PostRoute");
 const CommentRoute = require("./CommentRoute");
+const TagRoute = require("./TagRoute");
 const CategoriesOfKnowledgeRoute = require("./CategoriesOfKnowledgeRoute");
 
 export function route(app: Express) {
@@ -18,5 +19,6 @@ export function route(app: Express) {
   app.use("/post", PostRoute);
   app.use("/user", UserRoute);
   app.use("/auth", AuthRoute);
+  app.use("/tags", TagRoute);
   app.use("/", HomeRoute);
 }
