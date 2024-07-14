@@ -178,15 +178,22 @@ router.delete("/soft-delete-post/:id", PostsController.softDeletePost);
  *           type: string
  *         description: ID của chủ đề
  *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng (tùy chọn)
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Số trang
+ *           default: 1
+ *         description: Số trang (mặc định là 1)
  *       - in: query
  *         name: pageSize
  *         schema:
  *           type: integer
- *         description: Kích thước trang
+ *           default: 10
+ *         description: Kích thước trang (mặc định là 10)
  *     responses:
  *       200:
  *         description: Danh sách bài viết theo ID của chủ đề

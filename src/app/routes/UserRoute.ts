@@ -102,23 +102,44 @@ router.get("/get-detail-user/:id", userController.getUser);
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               birthday:
  *                 type: string
- *               email:
+ *                 description: Ngày sinh của người dùng
+ *               city:
  *                 type: string
- *               password:
+ *                 description: Thành phố của người dùng
+ *               district:
  *                 type: string
+ *                 description: Quận/Huyện của người dùng
+ *               ward:
+ *                 type: string
+ *                 description: Xã/Phường của người dùng
+ *               street:
+ *                 type: string
+ *                 description: Đường của người dùng
  *               fullname:
  *                 type: string
- *               role:
- *                 type: string
- *               avatar:
- *                 type: string
+ *                 description: Họ và tên đầy đủ của người dùng
  *     responses:
  *       200:
- *         description: Thông tin người dùng đã được cập nhật
+ *         description: Thông tin người dùng đã được cập nhật thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   description: Đối tượng thông tin người dùng đã cập nhật
+ *                 message:
+ *                   type: string
+ *                   description: Thông báo cập nhật thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
  *       404:
  *         description: Người dùng không tồn tại
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
  */
 router.put("/update-user/:id", userController.updateUser);
 

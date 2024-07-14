@@ -72,14 +72,15 @@ class UserController {
         phone_number,
         fullname,
       } = req.body;
-      const data: { fullname: string } = { fullname };
-      console.log(data.fullname);
-
+      const data: {} = { fullname, birthday, city, district, ward, street };
+      console.log(data);
       const user = await UserService.updateUser(req.params.id, data);
       if (!user) {
         return res.status(404).json({ message: "Người dùng không tồn tại" });
       }
-      res.status(200).json(user);
+      res
+        .status(200)
+        .json({ user, message: "Đã cập nhật thông tin người dùng thành công" });
     } catch (error: any) {
       if (error instanceof CustomError) {
         res.status(error.status).json({ message: error.message });

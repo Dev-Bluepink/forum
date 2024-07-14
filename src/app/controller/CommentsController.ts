@@ -1,4 +1,5 @@
 import CommentsService from "../service/CommentsService";
+import PostsService from "../service/PostsService";
 import { Request, Response } from "express";
 import CustomError from "../utils/customError";
 
@@ -18,7 +19,9 @@ class CommentsController {
         page,
         PAGE_SIZE
       );
-      res.status(200).json(comments);
+      res
+        .status(200)
+        .json({ comments, message: "Đã lấy được bình luận của bài viết" });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).send(error.message);
@@ -48,20 +51,36 @@ class CommentsController {
   }
   async createComment(req: Request, res: Response) {
     try {
-      const { postId, content, userId } = req.body;
+      const { postId, content, userId, commentId } = req.body;
       if (!postId || !content || !userId) {
         throw new CustomError(
           400,
           "Vui lòng nhập ID bài viết và nội dung bình luận"
         );
       }
-      const detail = {
-        postId,
-        content,
-        userId,
-      };
+      let detail;
+      if (commentId) {
+        detail = {
+          postId,
+          content,
+          userId,
+          commentId,
+        };
+      } else {
+        detail = {
+          postId,
+          content,
+          userId,
+        };
+      }
+
       const comment = await CommentsService.createComment(detail);
-      res.status(200).json(comment);
+      const post = await PostsService.getPostById(postId);
+      if (!post || Array.isArray(post)) {
+        throw new CustomError(404, "Không tìm thấy bài viết");
+      }
+      (post as any).countComments += 1;
+      res.status(200).json({ comment, message: "Đã tạo comment thành công" });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).send(error.message);

@@ -147,7 +147,6 @@ class UserService {
       throw new CustomError(400, errorMessage); // 400 Bad Request
     }
     const updateFields: any = {};
-    if (user.username) updateFields.username = user.username;
     if (user.email) updateFields.email = user.email;
     if (user.password) updateFields.password = hashPassword(user.password);
     if (user.fullname) updateFields.fullname = user.fullname;

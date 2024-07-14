@@ -46,7 +46,7 @@ router.get("/get-comments/:postId", CommentsController.getCommentsByPostId);
  * @swagger
  * /comment/create-comment:
  *   post:
- *     summary: Tạo bình luận mới
+ *     summary: Tạo bình luận mới hoặc bình luận con
  *     tags: [Comment]
  *     requestBody:
  *       required: true
@@ -57,10 +57,16 @@ router.get("/get-comments/:postId", CommentsController.getCommentsByPostId);
  *             properties:
  *               postId:
  *                 type: string
+ *                 description: ID của bài viết mà bình luận thuộc về
  *               content:
  *                 type: string
+ *                 description: Nội dung của bình luận
  *               userId:
  *                 type: string
+ *                 description: ID của người dùng tạo bình luận
+ *               commentId:
+ *                 type: string
+ *                 description: ID của bình luận cha (nếu là bình luận con, không bắt buộc)
  *     responses:
  *       200:
  *         description: Thành công

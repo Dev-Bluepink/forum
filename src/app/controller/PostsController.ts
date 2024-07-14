@@ -87,16 +87,29 @@ class PostsController {
   async getPostsByThreadId(req: Request, res: Response) {
     try {
       const { threadId } = req.params;
+      const userId = req.query.userId as string;
+
       const page = parseInt(req.query.page as string) || 1;
       const PAGE_SIZE = parseInt(req.query.pageSize as string) || 10;
-      const posts = await PostsService.getPostsByThreadId(
-        threadId,
-        page,
-        PAGE_SIZE
-      );
+
+      let posts;
+      if (userId) {
+        posts = await PostsService.getPostsByThreadId(
+          threadId,
+          page,
+          PAGE_SIZE,
+          userId
+        );
+      } else {
+        posts = await PostsService.getPostsByThreadId(
+          threadId,
+          page,
+          PAGE_SIZE
+        );
+      }
       const count = await PostsService.countPostsByThreadId(threadId);
       const totalPages = Math.ceil(count / PAGE_SIZE);
-      res.status(200).json({ posts, totalPages });
+      res.status(200).json({ posts, count, totalPages });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).json({ message: error.message });
@@ -113,7 +126,7 @@ class PostsController {
       if (!post) {
         throw new CustomError(204, "Không tìm thấy bài viết để lưu");
       }
-      res.status(200).json(post);
+      res.status(201).json({ post, message: "Đã lưu bài viết thành công" });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).json({ message: error.message });
@@ -130,7 +143,7 @@ class PostsController {
       if (!post) {
         throw new CustomError(204, "Không tìm thấy bài viết để up vote");
       }
-      res.status(200).json(post);
+      res.status(200).json({ post, message: "Đã up vote bài viết thành công" });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).json({ message: error.message });

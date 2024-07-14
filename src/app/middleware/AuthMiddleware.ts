@@ -37,6 +37,7 @@ export const checkLogin = async (
       // }
 
       (req as any).user = user;
+      (req as any).userId = decoded._id;
       // console.log("Xác thực người dùng thành công: " + (req as any).user);
       next();
     } catch (err) {

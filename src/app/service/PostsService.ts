@@ -2,6 +2,7 @@ import PostsModel from "../models/PostsModel";
 import CustomError from "../utils/customError";
 import VotesModel from "../models/VotesModel";
 import SavePostsModel from "../models/SavePostsModel";
+import mongoose from "mongoose";
 
 class PostsService {
   async addPost(info: {}) {
@@ -46,12 +47,12 @@ class PostsService {
       let Voted;
       const check = await VotesModel.findOne({
         postsId: postId,
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
       });
       if (!check) {
         Voted = await VotesModel.create({
           postsId: postId,
-          userId: userId,
+          userId: new mongoose.Types.ObjectId(userId),
           vote: "up",
         });
         return Voted;
@@ -90,27 +91,38 @@ class PostsService {
       let Voted;
       const check = await VotesModel.findOne({
         postsId: postId,
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
       });
       if (!check) {
-        Voted = await VotesModel.create({
-          postsId: postId,
-          userId: userId,
-          vote: "down",
-        });
+        Voted = await VotesModel.create(
+          {
+            postsId: postId,
+            userId: new mongoose.Types.ObjectId(userId),
+            vote: "down",
+          },
+          { new: true }
+        );
         return Voted;
       }
       const vote = check.vote;
       if (vote === "down") {
-        Voted = await VotesModel.findByIdAndUpdate(check._id, {
-          vote: "none",
-        });
+        Voted = await VotesModel.findByIdAndUpdate(
+          check._id,
+          {
+            vote: "none",
+          },
+          { new: true }
+        );
         return Voted;
       }
       if (vote === "none" || vote === "up") {
-        Voted = await VotesModel.findByIdAndUpdate(check._id, {
-          vote: "down",
-        });
+        Voted = await VotesModel.findByIdAndUpdate(
+          check._id,
+          {
+            vote: "down",
+          },
+          { new: true }
+        );
         return Voted;
       }
     } catch (error) {
@@ -125,12 +137,12 @@ class PostsService {
     try {
       const check = await SavePostsModel.findOne({
         postsId: postId,
-        userId: userId,
+        userId: new mongoose.Types.ObjectId(userId),
       });
       if (!check) {
         const saved = await SavePostsModel.create({
           postsId: postId,
-          userId: userId,
+          userId: new mongoose.Types.ObjectId(userId),
         });
         return saved;
       }
@@ -172,9 +184,10 @@ class PostsService {
           .sort({
             createdAt: -1,
           })
+          .lean()
           .populate({
             path: "tagId",
-            select: "name",
+            select: "name -_id",
             match: { isDelete: false },
           });
       } else {
@@ -195,8 +208,11 @@ class PostsService {
           { $unset: "tags" }, // Loại bỏ trường "tags"
           {
             $lookup: {
-              from: "FollowThreads",
-              let: { threadId: "$threadId", userId: userId },
+              from: "followthreads",
+              let: {
+                threadId: "$threadId",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -227,8 +243,11 @@ class PostsService {
           },
           {
             $lookup: {
-              from: "Votes",
-              let: { postId: "$_id", userId: userId },
+              from: "votes",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -250,12 +269,51 @@ class PostsService {
               votes: { $ifNull: [{ $first: "$votes.vote" }, "none"] }, // Sử dụng $ifNull
             },
           },
+          {
+            $lookup: {
+              from: "saveposts",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isDelete", false] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isSave",
+            },
+          },
+          {
+            $addFields: {
+              isSave: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isSave" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
           { $sort: { createdAt: -1 } },
         ]);
       }
       if (!posts) {
         throw new CustomError(204, "Không tìm thấy bài viết");
       }
+      posts.forEach((p) => {
+        p.tagName = p.tagId.name;
+        delete p.tagId;
+      });
       return posts;
     } catch (error) {
       if (error instanceof CustomError) {
@@ -280,15 +338,163 @@ class PostsService {
       }
     }
   }
-  async getPostsByThreadId(threadId: string, page: number, PAGE_SIZE: number) {
+  async getPostsByThreadId(
+    threadId: string,
+    page: number,
+    PAGE_SIZE: number,
+    userId?: string
+  ) {
     try {
-      const posts = await PostsModel.find({ threadId: threadId }).sort({
-        createdAt: -1,
-      });
-      if (!posts) {
-        throw new CustomError(204, "Không tồn tại bài viết");
+      // const posts = await PostsModel.find({ threadId: threadId }).sort({
+      //   createdAt: -1,
+      // });
+      // if (!posts) {
+      //   throw new CustomError(204, "Không tồn tại bài viết");
+      // }
+
+      let post;
+      if (userId) {
+        post = await PostsModel.aggregate([
+          {
+            $match: {
+              threadId: new mongoose.Types.ObjectId(threadId),
+              isDeleted: false,
+            },
+          },
+          { $skip: (page - 1) * PAGE_SIZE },
+          { $limit: PAGE_SIZE },
+          {
+            $lookup: {
+              from: "tags",
+              localField: "tagId",
+              foreignField: "_id",
+              as: "tags",
+              pipeline: [{ $match: { isDelete: false } }, { $limit: 1 }],
+            },
+          },
+          { $addFields: { tagName: { $first: "$tags.name" } } }, // Thêm trường tagName
+          { $unset: "tags" }, // Loại bỏ trường "tags"
+          {
+            $lookup: {
+              from: "followthreads",
+              let: {
+                threadId: "$threadId",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$threadId", "$$threadId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isFollow", true] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isFollow",
+            },
+          },
+          {
+            $addFields: {
+              isFollow: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isFollow" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "votes",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { vote: 1 } },
+              ],
+              as: "votes",
+            },
+          },
+          {
+            $addFields: {
+              votes: { $ifNull: [{ $first: "$votes.vote" }, "none"] }, // Sử dụng $ifNull
+            },
+          },
+          {
+            $lookup: {
+              from: "saveposts",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isDelete", false] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isSave",
+            },
+          },
+          {
+            $addFields: {
+              isSave: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isSave" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          { $sort: { createdAt: -1 } },
+        ]);
+      } else {
+        console.log("đã tới tìm kiếm post theo thread không có user");
+
+        post = await PostsModel.find({ threadId: threadId, isDeleted: false })
+          .skip((page - 1) * PAGE_SIZE)
+          .limit(PAGE_SIZE)
+          .sort({
+            createdAt: -1,
+          })
+          .lean()
+          .populate({
+            path: "tagId",
+            select: "name -_id",
+            match: { isDelete: false },
+          });
       }
-      return posts;
+      post.forEach((p) => {
+        p.tagName = p.tagId.name;
+        delete p.tagId;
+      });
+      return post;
     } catch (error) {
       if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);
@@ -333,8 +539,11 @@ class PostsService {
           { $addFields: { tags: { $first: "$tags" } } },
           {
             $lookup: {
-              from: "FollowThreads",
-              let: { threadId: "$threadId", userId: userId },
+              from: "followthreads",
+              let: {
+                threadId: "$threadId",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -365,8 +574,11 @@ class PostsService {
           },
           {
             $lookup: {
-              from: "Votes",
-              let: { postId: "$_id", userId: userId },
+              from: "votes",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -386,6 +598,41 @@ class PostsService {
           {
             $addFields: {
               votes: { $first: "$votes.vote" },
+            },
+          },
+          {
+            $lookup: {
+              from: "saveposts",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isDelete", false] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isSave",
+            },
+          },
+          {
+            $addFields: {
+              isSave: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isSave" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
             },
           },
           { $sort: { createdAt: -1 } },
@@ -415,11 +662,12 @@ class PostsService {
     userId?: string
   ) {
     try {
+      const lowercaseKeyword = keyword.toLowerCase();
       let posts;
       if (!userId) {
         posts = await PostsModel.find({
           isDeleted: false,
-          title: { $regex: keyword },
+          title: { $regex: lowercaseKeyword, $options: "i" },
         })
           .skip((page - 1) * PAGE_SIZE)
           .limit(PAGE_SIZE)
@@ -428,7 +676,12 @@ class PostsService {
           });
       } else {
         posts = await PostsModel.aggregate([
-          { $match: { isDeleted: false, title: { $regex: keyword } } },
+          {
+            $match: {
+              isDeleted: false,
+              title: { $regex: lowercaseKeyword, $options: "i" },
+            },
+          },
           { $skip: (page - 1) * PAGE_SIZE },
           { $limit: PAGE_SIZE },
           {
@@ -444,8 +697,11 @@ class PostsService {
           { $addFields: { tags: { $first: "$tags" } } },
           {
             $lookup: {
-              from: "FollowThreads",
-              let: { threadId: "$threadId", userId: userId },
+              from: "followthreads",
+              let: {
+                threadId: "$threadId",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -476,8 +732,11 @@ class PostsService {
           },
           {
             $lookup: {
-              from: "Votes",
-              let: { postId: "$_id", userId: userId },
+              from: "votes",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
               pipeline: [
                 {
                   $match: {
@@ -497,6 +756,41 @@ class PostsService {
           {
             $addFields: {
               votes: { $first: "$votes.vote" },
+            },
+          },
+          {
+            $lookup: {
+              from: "saveposts",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isDelete", false] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isSave",
+            },
+          },
+          {
+            $addFields: {
+              isSave: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isSave" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
             },
           },
           { $sort: { createdAt: -1 } },

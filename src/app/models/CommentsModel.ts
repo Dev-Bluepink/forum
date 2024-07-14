@@ -9,9 +9,9 @@ export interface IComments {
 }
 
 const CommentSchema = new Schema<IComments>({
-  userId: { type: Schema.Types.ObjectId, ref: "User" },
-  postId: { type: Schema.Types.ObjectId, ref: "Post" },
-  commentId: { type: Schema.Types.ObjectId, ref: "Comment" },
+  userId: { type: Schema.Types.ObjectId, ref: "Users" },
+  postId: { type: Schema.Types.ObjectId, ref: "Posts" },
+  commentId: { type: Schema.Types.ObjectId, ref: "Comments" },
   content: { type: String, required: true },
   isDeleted: { type: Boolean, default: false },
 });

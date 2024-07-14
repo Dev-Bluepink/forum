@@ -12,6 +12,8 @@ class ReportController {
       if (!post || Array.isArray(post)) {
         throw new CustomError(404, "Không tìm thấy bài viết");
       }
+      (post as any).countReport += 1;
+      await post.save();
       const countReport: number = (post as any).countReport as number;
       if (countReport >= 3) {
         await PostsService.softDeletePost(postId);
@@ -23,7 +25,9 @@ class ReportController {
         reason: reason,
       };
       const report = await ReportService.createReport(info);
-      res.status(201).json(report);
+      res
+        .status(201)
+        .json({ report, message: "Đã báo cáo bài viết thành công" });
     } catch (error) {
       if (error instanceof CustomError) {
         res.status(error.status).json(error);

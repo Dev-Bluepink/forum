@@ -15,6 +15,7 @@ export interface IPosts {
   status: string;
   isDeleted: boolean;
   countReport: number;
+  countComments: number;
   image1: string;
   image2: string;
   image3: string;
@@ -48,6 +49,7 @@ const PostSchema: Schema = new Schema<IPosts>({
   },
   isDeleted: { type: Boolean, default: false },
   countReport: { type: Number, default: 0 },
+  countComments: { type: Number, default: 0 },
   image1: { type: String, required: false },
   image2: { type: String, required: false },
   image3: { type: String, required: false },
