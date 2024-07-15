@@ -374,4 +374,45 @@ router.post("/report-post/:postId", ReportController.createReport);
  */
 router.post("/search-posts", PostsController.searchPosts);
 
+/**
+ * @swagger
+ * /post/get-posts-by-category-id/{categoryId}:
+ *   get:
+ *     summary: Lấy bài viết theo ID danh mục
+ *     tags: [Posts]
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID của danh mục
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Số trang
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *         description: Kích thước trang
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: ID của người dùng
+ *     responses:
+ *       200:
+ *         description: Đã lấy bài viết thành công
+ *       400:
+ *         description: Thiếu thông tin cần thiết
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.get(
+  "/get-posts-by-category-id/:categoryId",
+  PostsController.getPostsByCategoryId
+);
+
 module.exports = router;

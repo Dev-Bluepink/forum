@@ -522,13 +522,19 @@ class PostsService {
     try {
       let post;
       if (!userId) {
-        post = await PostsModel.findOne({ _id: postId, isDeleted: false });
+        post = await PostsModel.findOne({ _id: postId, isDeleted: false })
+          .lean()
+          .populate({
+            path: "tagId",
+            select: "name -_id",
+            match: { isDelete: false },
+          });
       } else {
         post = await PostsModel.aggregate([
           { $match: { isDeleted: false } },
           {
             $lookup: {
-              from: "Tags",
+              from: "tags",
               let: { postId: "$_id" },
               pipeline: [
                 { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
@@ -686,7 +692,7 @@ class PostsService {
           { $limit: PAGE_SIZE },
           {
             $lookup: {
-              from: "Tags",
+              from: "tags",
               let: { postId: "$_id" },
               pipeline: [
                 { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
@@ -800,6 +806,182 @@ class PostsService {
         throw new CustomError(204, "Không tìm thấy bài viết");
       }
       return posts;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
+  async getPostsByCategoryId(
+    categoryId: string,
+    page: number,
+    PAGE_SIZE: number,
+    userId?: string
+  ) {
+    try {
+      let posts;
+      if (!userId) {
+        posts = await PostsModel.find({
+          isDeleted: false,
+          categoryId: categoryId,
+        })
+          .skip((page - 1) * PAGE_SIZE)
+          .limit(PAGE_SIZE)
+          .sort({
+            createdAt: -1,
+          })
+          .lean()
+          .populate({
+            path: "tagId",
+            select: "name -_id",
+            match: { isDelete: false },
+          });
+      } else {
+        posts = await PostsModel.aggregate([
+          {
+            $match: {
+              isDeleted: false,
+              categoryId: categoryId,
+            },
+          },
+          { $skip: (page - 1) * PAGE_SIZE },
+          { $limit: PAGE_SIZE },
+          {
+            $lookup: {
+              from: "tags",
+              let: { postId: "$_id" },
+              pipeline: [
+                { $match: { $expr: { $eq: ["$postsId", "$$postId"] } } },
+              ],
+              as: "tags",
+            },
+          },
+          { $addFields: { tags: { $first: "$tags" } } },
+          {
+            $lookup: {
+              from: "followthreads",
+              let: {
+                threadId: "$threadId",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$threadId", "$$threadId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isFollow", true] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isFollow",
+            },
+          },
+          {
+            $addFields: {
+              isFollow: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isFollow" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: "votes",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { vote: 1 } },
+              ],
+              as: "votes",
+            },
+          },
+          {
+            $addFields: {
+              votes: { $first: "$votes.vote" },
+            },
+          },
+          {
+            $lookup: {
+              from: "saveposts",
+              let: {
+                postId: "$_id",
+                userId: new mongoose.Types.ObjectId(userId),
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ["$postsId", "$$postId"] },
+                        { $eq: ["$userId", "$$userId"] },
+                        { $eq: ["$isDelete", false] },
+                      ],
+                    },
+                  },
+                },
+                { $project: { _id: 1 } },
+              ],
+              as: "isSave",
+            },
+          },
+          {
+            $addFields: {
+              isSave: {
+                $cond: {
+                  if: { $gt: [{ $size: "$isSave" }, 0] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+          { $sort: { createdAt: -1 } },
+        ]);
+      }
+      if (!posts) {
+        throw new CustomError(204, "Không tìm thấy bài viết");
+      }
+      return posts;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ: " + error);
+      }
+    }
+  }
+  async countPostsByCategoryId(categoryId: string) {
+    try {
+      const count = await PostsModel.countDocuments({
+        categoryId: categoryId,
+        isDelete: false,
+      });
+      if (!count) {
+        throw new CustomError(204, "Lỗi khi đếm tổng số bài viết của chủ đề");
+      }
+      return count;
     } catch (error) {
       if (error instanceof CustomError) {
         throw new CustomError(error.status, error.message);

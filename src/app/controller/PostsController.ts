@@ -28,7 +28,6 @@ class PostsController {
       }
     }
   }
-
   async createPost(req: Request, res: Response) {
     try {
       const { title, content, threadId, tagId, userId } = req.body;
@@ -202,6 +201,38 @@ class PostsController {
       res.status(200).json(post);
     } catch (error) {
       res.status(500).json({ message: "Lỗi máy chủ: " + error });
+    }
+  }
+  async getPostsByCategoryId(req: Request, res: Response) {
+    try {
+      const { categoryId } = req.params;
+      const page = parseInt(req.query.page as string) || 1;
+      const PAGE_SIZE = parseInt(req.query.pageSize as string) || 10;
+      const userId = req.query.userId as string;
+      let posts;
+      if (userId) {
+        posts = await PostsService.getPostsByCategoryId(
+          categoryId,
+          page,
+          PAGE_SIZE,
+          userId
+        );
+      } else {
+        posts = await PostsService.getPostsByCategoryId(
+          categoryId,
+          page,
+          PAGE_SIZE
+        );
+      }
+      const count = await PostsService.countPostsByCategoryId(categoryId);
+      const totalPages = Math.ceil(count / PAGE_SIZE);
+      res.status(200).json({ posts, count, totalPages });
+    } catch (error) {
+      if (error instanceof CustomError) {
+        res.status(error.status).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Lỗi máy chủ: " + error });
+      }
     }
   }
 }

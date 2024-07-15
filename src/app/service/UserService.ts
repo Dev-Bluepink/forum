@@ -148,7 +148,6 @@ class UserService {
     }
     const updateFields: any = {};
     if (user.email) updateFields.email = user.email;
-    if (user.password) updateFields.password = hashPassword(user.password);
     if (user.fullname) updateFields.fullname = user.fullname;
     if (user.avatar) updateFields.avatar = user.avatar;
     if (user.city) updateFields.city = user.city;
@@ -220,6 +219,55 @@ class UserService {
       });
       if (!user) {
         throw new CustomError(400, "Lỗi khi cập nhật thông tin User");
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ nội bộ: " + error); // 500 Internal Server Error
+      }
+    }
+  }
+  async changePassword(
+    idUser: string,
+    oldPassword: string,
+    newPassword: string
+  ) {
+    try {
+      const user = await UserModel.findById(idUser);
+      if (!user) {
+        throw new CustomError(400, "Người dng không tồn tại");
+      }
+      const isPasswordValid = comparePassword(oldPassword, user.password);
+      if (!isPasswordValid) {
+        throw new CustomError(401, "Password cũ  không đng"); // 401 Unauthorized
+      }
+      const hashedPassword = hashPassword(newPassword);
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        idUser,
+        { password: hashedPassword },
+        { new: true }
+      );
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof CustomError) {
+        throw new CustomError(error.status, error.message);
+      } else {
+        throw new CustomError(500, "Lỗi máy chủ nội bộ: " + error); // 500 Internal Server Error
+      }
+    }
+  }
+
+  async changeAvatar(idUser: string, avatar: string) {
+    try {
+      const user = await UserModel.findByIdAndUpdate(
+        idUser,
+        { avatar },
+        { new: true }
+      );
+      if (!user) {
+        throw new CustomError(400, "Người dng không tồn tại");
       }
       return user;
     } catch (error) {

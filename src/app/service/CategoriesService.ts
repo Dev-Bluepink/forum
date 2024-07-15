@@ -54,7 +54,12 @@ class CategoriesService {
   }
   async getAllCategories(page: number, PAGE_SIZE: number, provinceId?: string) {
     try {
-      const filter = provinceId ? {provinceId: new mongoose.Types.ObjectId(provinceId), isDelete: false} : {};
+      const filter = provinceId
+        ? {
+            provinceId: new mongoose.Types.ObjectId(provinceId),
+            isDelete: false,
+          }
+        : {};
       // const categories = await CategoriesModel.find(filter)
       //   .skip((page - 1) * limit)
       //   .limit(limit);
@@ -70,7 +75,7 @@ class CategoriesService {
         },
         {
           $lookup: {
-            from: "Threads",
+            from: "threads",
             localField: "_id",
             foreignField: "threadId",
             as: "threads",

@@ -7,6 +7,7 @@
 import userController from "../controller/UserController";
 import { Router } from "express";
 import { checkLogin } from "../middleware/AuthMiddleware";
+import { uploadImage } from "../middleware/UploadImage";
 
 const router = Router();
 
@@ -215,5 +216,79 @@ router.get("/get-all-user", checkLogin, userController.getAllUsers);
  *         description: Lỗi máy chủ nội bộ
  */
 router.post("/register", userController.register);
+
+/**
+ * @swagger
+ * /user/change-password/{id}:
+ *   put:
+ *     summary: Thay đổi mật khẩu người dùng
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Id của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: "oldpassword123"
+ *               newPassword:
+ *                 type: string
+ *                 example: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Đã cập nhật password thành công
+ *       400:
+ *         description: Người dùng không tồn tại hoặc mật khẩu cũ không đúng
+ *       401:
+ *         description: Mật khẩu cũ không đúng
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.put("/change-password/:id", userController.changePassword);
+
+/**
+ * @swagger
+ * /user/change-avatar/{id}:
+ *   put:
+ *     summary: Thay đổi avatar người dùng
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Id của người dùng
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Đã cập nhật avatar thành công
+ *       400:
+ *         description: Avatar không được để trống
+ *       500:
+ *         description: Lỗi máy chủ nội bộ
+ */
+router.put("/change-avatar/:id", uploadImage, userController.changeAvatar);
 
 module.exports = router;

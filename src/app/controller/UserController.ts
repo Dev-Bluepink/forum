@@ -89,6 +89,41 @@ class UserController {
       }
     }
   }
+  async changePassword(req: Request, res: Response) {
+    const { oldPassword, newPassword } = req.body;
+    try {
+      const user = await UserService.changePassword(
+        req.params.id,
+        oldPassword,
+        newPassword
+      );
+      res
+        .status(200)
+        .json({ user, message: "Đã cập nhật password thành công" });
+    } catch (error: any) {
+      if (error instanceof CustomError) {
+        res.status(error.status).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Lỗi máy chủ nội bộ " + error });
+      }
+    }
+  }
+  async changeAvatar(req: Request, res: Response) {
+    try {
+      const avatar = req.cloudinaryUrl;
+      if (!avatar) {
+        return res.status(400).json({ message: "Avatar không được để trống" });
+      }
+      const user = await UserService.changeAvatar(req.params.id, avatar);
+      res.status(200).json({ user, message: "Đã cập nhật avatar thành công" });
+    } catch (error: any) {
+      if (error instanceof CustomError) {
+        res.status(error.status).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Lỗi máy chủ nội bộ " + error });
+      }
+    }
+  }
 }
 
 export default new UserController();

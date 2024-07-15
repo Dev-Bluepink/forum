@@ -13,7 +13,7 @@ class ReportController {
         throw new CustomError(404, "Không tìm thấy bài viết");
       }
       (post as any).countReport += 1;
-      await post.save();
+      await (post as any).save(); // Sửa đổi ở đây
       const countReport: number = (post as any).countReport as number;
       if (countReport >= 3) {
         await PostsService.softDeletePost(postId);

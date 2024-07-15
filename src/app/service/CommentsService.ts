@@ -41,7 +41,12 @@ class CommentsService {
         .skip((page - 1) * PAGE_SIZE)
         .limit(PAGE_SIZE)
         .populate("userId")
-        .populate("commentId")
+        .populate({
+          path: "commentId",
+          populate: {
+            path: "userId",
+          },
+        })
         .sort({ createdAt: 1 });
 
       if (comments.length === 0) {
