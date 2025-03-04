@@ -11,7 +11,7 @@ import "dotenv/config";
 import MongoStore from "connect-mongo";
 connect();
 
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000', 10);
 
 const app = express();
 // const allowedOrigins = [
@@ -56,6 +56,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(passport.initialize());
 app.use(passport.session());
 route(app);
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`App listening at http://localhost:${port}`);
 });
